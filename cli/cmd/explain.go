@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -13,7 +12,7 @@ import (
 type explainOpts struct {
 	recursive bool
 	maxDepth  int
-	output    string
+	json      bool
 }
 
 func newExplainCmd(a *app) *cobra.Command {
@@ -31,13 +30,13 @@ RESOURCE is a definition from one of three schemas:
 Follow it with a dotted field path. Arrays and maps are stepped into
 automatically. When a field is a union (DialogAction, TriggerBase, ...), the
 next segment picks the member kind.`,
-		Example: `  cs-explain explain SendActivity
-  cs-explain explain AdaptiveDialog.beginDialog
-  cs-explain explain AdaptiveDialog.beginDialog.OnRecognizedIntent.actions.Question.entity
-  cs-explain explain GptComponentMetadata --recursive --max-depth 2
-  cs-explain explain card:Input.ChoiceSet.choices.data
-  cs-explain explain connector:shared_office365users
-  cs-explain explain ConversationOutcome -o json`,
+		Example: `  cse explain SendActivity
+  cse explain AdaptiveDialog.beginDialog
+  cse explain AdaptiveDialog.beginDialog.OnRecognizedIntent.actions.Question.entity
+  cse explain GptComponentMetadata --recursive --max-depth 2
+  cse explain card:Input.ChoiceSet.choices.data
+  cse explain connector:shared_office365users
+  cse explain ConversationOutcome --json`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cat, err := a.cat()
@@ -48,19 +47,15 @@ next segment picks the member kind.`,
 			if err != nil {
 				return err
 			}
-			switch o.output {
-			case "", "plaintext", "text":
-				return render.Plain(cmd.OutOrStdout(), res, cat.Version(),
-					render.Options{Recursive: o.recursive, MaxDepth: o.maxDepth})
-			case "json":
+			if o.json {
 				src, err := cat.Source(res.Source)
 				if err != nil {
 					return err
 				}
 				return render.JSON(cmd.OutOrStdout(), res, cat.Version(), src)
-			default:
-				return fmt.Errorf("unknown output format %q (want plaintext or json)", o.output)
 			}
+			return render.Plain(cmd.OutOrStdout(), res, cat.Version(),
+				render.Options{Recursive: o.recursive, MaxDepth: o.maxDepth})
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			if len(args) > 0 {
@@ -71,7 +66,7 @@ next segment picks the member kind.`,
 	}
 	c.Flags().BoolVar(&o.recursive, "recursive", false, "print the field tree (union members are not expanded)")
 	c.Flags().IntVar(&o.maxDepth, "max-depth", 10, "with --recursive, how many levels to expand (0 = unlimited)")
-	c.Flags().StringVarP(&o.output, "output", "o", "plaintext", "output format: plaintext or json")
+	c.Flags().BoolVar(&o.json, "json", false, "print the raw schema fragment as JSON, for scripts")
 	return c
 }
 

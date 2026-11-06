@@ -1,4 +1,4 @@
-# Curated descriptions for cs-explain. Sourced from docs/*.md. Keys:
+# Curated descriptions for cse. Sourced from docs/*.md. Keys:
 #   Def                  -> description of a definition (kind)
 #   Def.field            -> description of a field (field must be a property of Def)
 #   Owner.field          -> shared field description; Owner is the type named in the schema's placeholder token
@@ -11,7 +11,7 @@
 # the schema's names, the text says so ("inferred"). Kinds the guides don't explain are
 # deliberately left out rather than guessed.
 
-# Kinds that can be the root of a file, from docs/02-project-layout.md#folder-structure. `cs-explain list`
+# Kinds that can be the root of a file, from docs/02-project-layout.md#folder-structure. `cse list`
 # shows these by default (`--all` lists every definition). The schema itself only declares
 # AdaptiveDialog and TaskDialog as roots, so this list is curated; stale kinds fail the tests.
 roots:

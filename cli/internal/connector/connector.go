@@ -185,7 +185,7 @@ func (p *property) UnmarshalYAML(n *yaml.Node) error {
 	return nil
 }
 
-// decodeRaw returns a lazy decoder for a YAML subtree (used only by -o json).
+// decodeRaw returns a lazy decoder for a YAML subtree (used only by --json).
 func decodeRaw(n *yaml.Node) func() any {
 	return func() any {
 		if n == nil || n.Kind == 0 {

@@ -94,29 +94,29 @@ Guides show the commonly used properties of each kind. The generated reference s
 
 ## Exploring the schema from the command line
 
-`cs-explain` (in [`cli/`](../cli)) works like `kubectl explain`. Give it a kind and an optional dotted field
+`cse` (in [`cli/`](../cli)) works like `kubectl explain`. Give it a kind and an optional dotted field
 path, and it prints each field's type, whether it is required, its default, its enum values, its union members
 and a description. The three vendored schemas are embedded in the binary, so it needs no network access and no
 Node.js.
 
 ```bash
-make cli                                    # builds bin/cs-explain (needs Go 1.26+)
-bin/cs-explain SendActivity                 # a topic node and its fields
-bin/cs-explain AdaptiveDialog.beginDialog   # a union: lists every trigger kind
-bin/cs-explain AdaptiveDialog.beginDialog.OnRecognizedIntent.actions.Question.entity
-bin/cs-explain GptComponentMetadata --recursive --max-depth 2
-bin/cs-explain card:Input.ChoiceSet         # Adaptive Card elements
-bin/cs-explain connector:shared_office365users.UserProfile_V2.inputs
-bin/cs-explain list                         # the 7 kinds a .mcs.yml file can hold, like `kubectl api-resources`
-bin/cs-explain list --all --kinds-only      # every kind; --filter, --kinds-only and --undocumented imply --all
-bin/cs-explain ConversationOutcome -o json  # the raw schema fragment, for scripts
-source <(bin/cs-explain completion bash)    # tab-complete kinds and field paths
+make cli                             # builds bin/cse (needs Go 1.26+)
+bin/cse SendActivity                 # a topic node and its fields
+bin/cse AdaptiveDialog.beginDialog   # a union: lists every trigger kind
+bin/cse AdaptiveDialog.beginDialog.OnRecognizedIntent.actions.Question.entity
+bin/cse GptComponentMetadata --recursive --max-depth 2
+bin/cse card:Input.ChoiceSet         # Adaptive Card elements
+bin/cse connector:shared_office365users.UserProfile_V2.inputs
+bin/cse list                         # the 7 kinds a .mcs.yml file can hold, like `kubectl api-resources`
+bin/cse list --all --kinds-only      # every kind; --filter, --kinds-only and --undocumented imply --all
+bin/cse ConversationOutcome --json   # the raw schema fragment, for scripts
+source <(bin/cse completion bash)    # tab-complete kinds and field paths
 ```
 
 When a field holds a union, such as a topic's `actions:`, the next path segment picks the member kind. Type
 `<boolean | =expr>` means the field takes a literal or a [Power Fx](glossary.md#power-fx) formula. The schema's
 own descriptions are placeholders, so the text comes from a curated overlay,
-`cli/internal/describe/descriptions.yaml`, which is written from these guides. `bin/cs-explain coverage` reports
+`cli/internal/describe/descriptions.yaml`, which is written from these guides. `bin/cse coverage` reports
 how much of the schema the overlay covers. It also lists any overlay keys that no longer match the schema.
 
 ## Maintaining these docs
@@ -124,7 +124,7 @@ how much of the schema the overlay covers. It also lists any overlay keys that n
 ```bash
 python3 -I tools/gen_reference.py   # regenerate docs/reference/** after updating the submodule
 python3 -I tools/check_docs.py      # validate YAML examples against the schema, check links and anchors
-make schemas test                   # re-embed the updated schemas in cs-explain and run its tests
+make schemas test                   # re-embed the updated schemas in cse and run its tests
 ```
 
 Both scripts need Python 3.9+ with `pyyaml`. The checker also needs `jsonschema` (4.18+).

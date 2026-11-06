@@ -27,7 +27,7 @@ FIELDS:
     of this or any children can't be met.
     enum: drop
     since Adaptive Cards v1.2
-    one of 16 kinds: cs-explain card:Input.ChoiceSet.fallback
+    one of 16 kinds: cse card:Input.ChoiceSet.fallback
 
   height	<BlockElementHeight>
     Specifies the height of the element.

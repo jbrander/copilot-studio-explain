@@ -67,7 +67,7 @@ func (c *Catalog) Resolve(expr string) (*Result, error) {
 	}
 	rest = strings.Trim(rest, ".")
 	if rest == "" {
-		return nil, fmt.Errorf("you must name a resource to explain; try `cs-explain list %s`", srcName)
+		return nil, fmt.Errorf("you must name a resource to explain; try `cse list %s`", srcName)
 	}
 	segs := strings.Split(rest, ".")
 	res := &Result{Source: srcName}
@@ -91,7 +91,7 @@ func (c *Catalog) Resolve(expr string) (*Result, error) {
 			}
 		}
 		return nil, &NotFoundError{
-			Msg:         fmt.Sprintf("%s: no %s definition matches %q (see `cs-explain list %s --all`)", srcName, srcName, rest, srcName),
+			Msg:         fmt.Sprintf("%s: no %s definition matches %q (see `cse list %s --all`)", srcName, srcName, rest, srcName),
 			Suggestions: sugg,
 		}
 	}

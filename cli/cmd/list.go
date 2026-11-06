@@ -29,11 +29,11 @@ For the bot schema the default is the kinds that can be the root of a
 .mcs.yml file (agent, topics, tools, knowledge, ...). --all lists every
 definition; --filter, --kinds-only and --undocumented imply --all. The card
 and connector schemas always list everything.`,
-		Example: `  cs-explain list
-  cs-explain list --all
-  cs-explain list --kinds-only --filter search
-  cs-explain list card
-  cs-explain list connector`,
+		Example: `  cse list
+  cse list --all
+  cse list --kinds-only --filter search
+  cse list card
+  cse list connector`,
 		Args:      cobra.MaximumNArgs(1),
 		ValidArgs: explain.SourceNames,
 		RunE: func(cmd *cobra.Command, args []string) error {

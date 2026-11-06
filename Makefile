@@ -1,9 +1,9 @@
-# cs-explain: a `kubectl explain` for Copilot Studio YAML (Go module in cli/).
+# cse: a `kubectl explain` for Copilot Studio YAML (Go module in cli/).
 BIN ?= bin/cse
 
 .PHONY: cli schemas test golden install clean
 
-## cli: sync the vendored schemas into the embed dir and build bin/cs-explain
+## cli: sync the vendored schemas into the embed dir and build bin/cse
 cli: schemas
 	cd cli && go build -trimpath -o ../$(BIN) .
 
@@ -19,9 +19,9 @@ test:
 golden:
 	cd cli && go test ./cmd -run TestGolden -update
 
-## install: build cs-explain into $(go env GOPATH)/bin
+## install: build cse into $(go env GOPATH)/bin
 install: schemas
-	cd cli && go build -trimpath -o "$$(go env GOPATH)/bin/cs-explain" .
+	cd cli && go build -trimpath -o "$$(go env GOPATH)/bin/cse" .
 
 clean:
 	rm -rf bin

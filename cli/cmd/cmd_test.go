@@ -32,7 +32,7 @@ func TestGolden(t *testing.T) {
 		"card-dotted-field":        {"card:Input.ChoiceSet.choices.data"},
 		"connector":                {"connector:shared_office365users"},
 		"connector-op-inputs":      {"connector:shared_office365users.UserProfile_V2.inputs"},
-		"json-enum":                {"ConversationOutcome", "-o", "json"},
+		"json-enum":                {"ConversationOutcome", "--json"},
 		"list":                     {"list"},
 	}
 	for name, args := range cases {
@@ -61,7 +61,7 @@ func TestGolden(t *testing.T) {
 	a, _, _ := runCLI(t, "SendActivity")
 	b, _, _ := runCLI(t, "explain", "SendActivity")
 	if a != b {
-		t.Error("`cs-explain X` and `cs-explain explain X` differ")
+		t.Error("`cse X` and `cse explain X` differ")
 	}
 }
 
@@ -70,13 +70,13 @@ func TestErrors(t *testing.T) {
 		args []string
 		want string
 	}{
-		"typo":       {[]string{"SendActvity"}, "Did you mean: SendActivity?"},
-		"bad field":  {[]string{"SendActivity.activty"}, "Did you mean: activity?"},
-		"union":      {[]string{"AdaptiveDialog.beginDialog.actions"}, "is a union"},
-		"bad output": {[]string{"SendActivity", "-o", "yaml"}, "unknown output format"},
-		"bad schema": {[]string{"list", "nope"}, "unknown schema"},
-		"two args":   {[]string{"explain", "a", "b"}, "accepts 1 arg"},
-		"schema dir": {[]string{"--schema-dir", "/nonexistent", "SendActivity"}, "schema dir"},
+		"typo":        {[]string{"SendActvity"}, "Did you mean: SendActivity?"},
+		"bad field":   {[]string{"SendActivity.activty"}, "Did you mean: activity?"},
+		"union":       {[]string{"AdaptiveDialog.beginDialog.actions"}, "is a union"},
+		"old -o flag": {[]string{"SendActivity", "-o", "json"}, "unknown shorthand flag"},
+		"bad schema":  {[]string{"list", "nope"}, "unknown schema"},
+		"two args":    {[]string{"explain", "a", "b"}, "accepts 1 arg"},
+		"schema dir":  {[]string{"--schema-dir", "/nonexistent", "SendActivity"}, "schema dir"},
 	}
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {

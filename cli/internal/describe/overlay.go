@@ -8,7 +8,7 @@
 //	enum.Enum.Value  one value of an enum
 //
 // A separate top-level `roots:` key lists, per source, the kinds that can be
-// the root of a file; `cs-explain list` shows those by default.
+// the root of a file; `cse list` shows those by default.
 package describe
 
 import (

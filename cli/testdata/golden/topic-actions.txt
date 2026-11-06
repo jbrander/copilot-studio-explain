@@ -67,4 +67,4 @@ ONE OF (set `kind:`):
   UpdateActivity                      Replaces a previously sent message (activityId, new activity).
   CreateSearchQuery                   Uses AI and the conversation history to rewrite the user's message into a self-contained …
 
-Use `cs-explain AdaptiveDialog.beginDialog.OnRecognizedIntent.actions.<Kind>` to explain one of them.
+Use `cse AdaptiveDialog.beginDialog.OnRecognizedIntent.actions.<Kind>` to explain one of them.

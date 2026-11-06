@@ -193,7 +193,7 @@ func (p *printer) union(n *model.Node) {
 		p.line("  also accepts: %s", strings.Join(n.MemberNotes, ", "))
 	}
 	p.blank()
-	p.line("Use `cs-explain %s.<%s>` to explain one of them.", p.expr, titleCase(n.Discriminator))
+	p.line("Use `cse %s.<%s>` to explain one of them.", p.expr, titleCase(n.Discriminator))
 }
 
 // row writes a two-column table row without trailing padding when the second column is empty.
@@ -245,7 +245,7 @@ func (p *printer) fields(n *model.Node) {
 			p.wrapped(l, "    ")
 		}
 		if c := f.Child(); c != nil && c.Shape == model.Union {
-			p.line("    one of %d kinds: cs-explain %s.%s", len(c.Members), p.expr, f.Name)
+			p.line("    one of %d kinds: cse %s.%s", len(c.Members), p.expr, f.Name)
 		}
 	}
 }

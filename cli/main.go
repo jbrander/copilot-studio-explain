@@ -1,4 +1,4 @@
-// Command cs-explain describes the YAML schema of Microsoft Copilot Studio
+// Command cse describes the YAML schema of Microsoft Copilot Studio
 // agents, in the style of `kubectl explain`.
 package main
 

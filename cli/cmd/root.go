@@ -1,4 +1,4 @@
-// Package cmd wires the cs-explain command line.
+// Package cmd wires the cse command line.
 package cmd
 
 import (
@@ -23,7 +23,7 @@ func (a *app) cat() (*explain.Catalog, error) {
 	}
 	dir := a.schemaDir
 	if dir == "" {
-		dir = os.Getenv("CS_EXPLAIN_SCHEMA_DIR")
+		dir = os.Getenv("CSE_SCHEMA_DIR")
 	}
 	c, err := explain.Open(dir)
 	if err != nil {
@@ -38,9 +38,9 @@ func NewRoot(out, errOut io.Writer) *cobra.Command {
 	a := &app{}
 	ex := newExplainCmd(a)
 	root := &cobra.Command{
-		Use:   "cs-explain [RESOURCE[.field...]]",
+		Use:   "cse [RESOURCE[.field...]]",
 		Short: "Describe the YAML schema of Copilot Studio agents, like `kubectl explain`",
-		Long: `cs-explain describes the fields of the YAML you write for Microsoft Copilot Studio
+		Long: `cse describes the fields of the YAML you write for Microsoft Copilot Studio
 agents (.mcs.yml topics, actions, triggers, agent and knowledge files), Adaptive
 Cards, and connector operations. It reads schemas vendored from
 github.com/microsoft/skills-for-copilot-studio, which are embedded in the binary.
@@ -49,12 +49,12 @@ A RESOURCE is a schema definition, optionally followed by a dotted field path.
 When a field holds a union (for example a topic's actions), the next segment is
 the kind you want:
 
-  cs-explain SendActivity
-  cs-explain AdaptiveDialog.beginDialog.OnRecognizedIntent.actions
-  cs-explain card:Input.ChoiceSet.choices
-  cs-explain connector:shared_office365.<operationId>.inputs
+  cse SendActivity
+  cse AdaptiveDialog.beginDialog.OnRecognizedIntent.actions
+  cse card:Input.ChoiceSet.choices
+  cse connector:shared_office365.<operationId>.inputs
 
-"cs-explain RESOURCE" is short for "cs-explain explain RESOURCE".`,
+"cse RESOURCE" is short for "cse explain RESOURCE".`,
 		Args:              cobra.ArbitraryArgs,
 		ValidArgsFunction: ex.ValidArgsFunction,
 		SilenceUsage:      true,
@@ -69,7 +69,7 @@ the kind you want:
 	root.SetOut(out)
 	root.SetErr(errOut)
 	root.PersistentFlags().StringVar(&a.schemaDir, "schema-dir", "",
-		"read schemas from this upstream reference/ directory instead of the embedded copy (env CS_EXPLAIN_SCHEMA_DIR)")
+		"read schemas from this upstream reference/ directory instead of the embedded copy (env CSE_SCHEMA_DIR)")
 	// The root accepts explain's flags so the shorthand form works.
 	root.Flags().AddFlagSet(ex.Flags())
 	root.AddCommand(ex, newListCmd(a), newCoverageCmd(a))

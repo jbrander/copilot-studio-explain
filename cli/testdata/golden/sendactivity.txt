@@ -19,7 +19,7 @@ FIELDS:
     (variations), speak, quickReplies and attachments. Most channels collapse
     plain newlines, so use `<br />` for breaks; quote values that start with `{`
     or contain `: `.
-    one of 3 kinds: cs-explain SendActivity.activity
+    one of 3 kinds: cse SendActivity.activity
 
   conversationOutcome	<ConversationOutcome>
     Marks the conversation's outcome (ResolvedConfirmed, ResolvedImplied or

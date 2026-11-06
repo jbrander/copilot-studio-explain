@@ -57,7 +57,7 @@ type Node struct {
 	Shorthands []string
 
 	// Raw is the source fragment (json.RawMessage for JSON schemas, a decoded
-	// YAML value or a func() any producing one for connectors), used by `-o json`.
+	// YAML value or a func() any producing one for connectors), used by `--json`.
 	Raw any
 }
 
