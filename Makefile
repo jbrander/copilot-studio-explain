@@ -1,5 +1,5 @@
 # cs-explain: a `kubectl explain` for Copilot Studio YAML (Go module in cli/).
-BIN ?= bin/cs-explain
+BIN ?= bin/cse
 
 .PHONY: cli schemas test golden install clean
 
