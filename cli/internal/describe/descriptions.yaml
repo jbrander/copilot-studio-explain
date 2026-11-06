@@ -1,0 +1,934 @@
+# Curated descriptions for cs-explain. Sourced from docs/*.md. Keys:
+#   Def                  -> description of a definition (kind)
+#   Def.field            -> description of a field (field must be a property of Def)
+#   Owner.field          -> shared field description; Owner is the type named in the schema's placeholder token
+#                           e.g. `DialogAction.id` applies to `id` on every action kind
+#   enum.Enum.Value      -> description of one enum value
+# Values: a plain string, or a map {description: ..., docs: <repo-relative path#anchor>}
+#
+# Every description comes from the hand-written guides in docs/ (which cite the vendored
+# skills-for-copilot-studio repo). Where the guides themselves only infer a meaning from
+# the schema's names, the text says so ("inferred"). Kinds the guides don't explain are
+# deliberately left out rather than guessed.
+
+bot:
+
+  # --- Unions and shared base fields
+  DialogBase:
+    description: "Base of the three dialog kinds: a topic (AdaptiveDialog), a tool (TaskDialog) or a child agent (AgentDialog)."
+    docs: docs/01-concepts.md#the-pieces-of-an-agent
+  DialogBase.inputs: "Parameters the orchestrator fills: AutomaticTaskInput entries come from the conversation (the user is asked only if needed), ManualTaskInput entries carry a fixed value. On a topic, declare every input in both inputs and inputType.properties with matching names; on an MCP tool, don't add AutomaticTaskInputs."
+  TriggerBase:
+    description: "The trigger that starts a topic, written under beginDialog: with id: main by convention. 28 kinds, from intent recognition (OnRecognizedIntent) to system events (OnError, OnConversationStart), interception hooks and schedules."
+    docs: docs/04-topics-and-triggers.md#trigger-kinds
+  TriggerBase.id: Trigger ID, conventionally `main`.
+  TriggerBase.actions: "The topic body: the nodes to run, in order, when the trigger fires. A child agent's OnToolSelected trigger must not have actions."
+  TriggerBase.condition: "Power Fx guard: the trigger only fires when this is true. For example `=IsBlank(Global.UserCountry)` makes an OnActivity topic fire once, and `=System.Activity.ChannelId = \"msteams\"` limits it to Teams."
+  TriggerBase.priority: Ordering between topics that could fire on the same event (default 0). The vendor fallback and search topics use -1; a low-priority initialisation topic uses -2.
+  TriggerBase.runOnce: The trigger fires at most once per conversation. (inferred)
+  DialogAction:
+    description: "A node: one step in a topic's actions: list. 52 kinds covering messaging, questions, variables, branching and loops, topic navigation, AI and knowledge, integration and conversation control. Never invent a kind; the vendor skills call invented kinds the #1 source of hallucination errors."
+    docs: docs/05-nodes.md#all-node-kinds-at-a-glance
+  DialogAction.id: "Unique within the topic. Convention: `<nodeType>_<6-8 random alphanumerics>`, e.g. `sendMessage_k3Jd9a`. Duplicate IDs (from copy-pasted nodes or leftover `_REPLACE` placeholders) fail on push."
+  DialogAction.displayName: The label shown on the node in the authoring canvas.
+  DialogAction.disabled: The node is skipped at runtime. (inferred)
+  DialogAction.conversationOutcome: Marks the conversation's outcome (ResolvedConfirmed, ResolvedImplied or Escalated) for analytics when this node runs. (inferred)
+  AsyncAction.latencyMessageSettings: "An interim \"please wait\" message for slow calls: allowLatencyMessage, latencyMessage, latencyMessageDelayInMilliseconds, minimumPlaybackInMilliseconds. (inferred) Compare the knowledge hold-message pattern."
+  TaskAction:
+    description: "What a tool (TaskDialog) actually runs, under its action: block: a connector operation, a flow, an MCP server or external agent, a connected agent, an AI Builder model, and others (10 kinds)."
+    docs: docs/08-tools-and-connectors.md#the-10-action-kinds
+  KnowledgeSource:
+    description: "The source: of a knowledge file: what content is searched. 15 kinds; only PublicSiteSearchSource and SharePointSearchSource can be created from YAML. The rest are created in the UI and can be edited after pulling."
+    docs: docs/07-knowledge.md#the-15-knowledge-source-kinds
+  KnowledgeSource.triggerCondition: "Power Fx boolean: the source is only searched when it is true. `=false` keeps it out of automatic search, so only search nodes that name it in knowledgeSources use it. Arbitrary expressions are YAML-only: the UI shows an on/off toggle and may silently drop them."
+  AgentDefinition:
+    description: "The shape of an agent definition. In agent.mcs.yml it is GptComponentMetadata; a child agent's settings: block takes the same fields."
+    docs: docs/03-agent.md#agentmcsyml
+  ActivityTemplateBase:
+    description: "Something the agent sends. Almost always a message: a plain string, a `{...}` template, or an object with text variations, speak, quickReplies and attachments. The other shapes are Activity (non-message, e.g. typing) and EventActivity. Used by SendActivity.activity, Question.prompt and the other prompts."
+    docs: docs/11-messages-and-adaptive-cards.md#where-message-content-appears
+  EntityReference:
+    description: "What a Question or AutomaticTaskInput recognises in the user's reply: a prebuilt entity by bare name (`NumberPrebuiltEntity`), a custom closed list or regex, a dynamic list, or an inline EmbeddedEntity. It decides what counts as a valid answer."
+    docs: docs/06-variables-entities-powerfx.md#entities
+  DataType:
+    description: "A value type, used in inputType/outputType properties, ParseValue.valueType and HTTP/connector response schemas. Simple types are a bare name (String, Number, Boolean, DateTime, ...); Record and Table need kind: plus nested properties:."
+    docs: docs/06-variables-entities-powerfx.md#data-types
+  QuickReplyBase:
+    description: "A quick-reply button under a message: MessageBack, SendHiddenMessageBack, OpenUrl or MakeCall."
+    docs: docs/11-messages-and-adaptive-cards.md#quick-replies
+  QuickReplyBase.title: Button label; may be a template or an `=` expression.
+  RecognizerBase:
+    description: "The agent's intent recognizer, set in settings.mcs.yml under configuration.recognizer. Four kinds, none with properties besides kind. Don't confuse it with a topic's own recognizer: (Recognizer)."
+    docs: docs/03-agent.md#recognizers
+  Recognizer:
+    description: "A topic-level recognizer (the topic's recognizer: property): RegexRecognizer with regex intents. Not the same as the agent-level configuration.recognizer. No vendor guidance."
+    docs: docs/04-topics-and-triggers.md#adaptivedialog-root-properties
+  BotSettingsBase:
+    description: "A settings block held by a BotSettingsComponent: content moderation, autonomous runs, voice or feedback. The source repo has no examples and doesn't say which file these live in; leave cloned ones as they are."
+    docs: docs/03-agent.md#agent-settings-components-botsettingsbase
+  SearchKnowledgeSourcesMode:
+    description: "Which knowledge sources to search: SearchAllKnowledgeSources, or SearchSpecificKnowledgeSources with a knowledgeSources: list of knowledge schema names."
+    docs: docs/07-knowledge.md#searchandsummarizecontent
+  ExternalTriggerDefinition:
+    description: "The event behind an autonomous trigger (configuration.externalTriggerSource): a connector trigger, a schedule, or a flow."
+    docs: docs/10-flows-and-autonomous-triggers.md#externaltriggercomponent
+  ProtocolMetadataBase:
+    description: "The operationDetails of an InvokeExternalAgentTaskAction, saying which protocol the external tool speaks: ModelContextProtocolMetadata (MCP), AgentToAgentProtocolMetadata (A2A) or ActivityProtocolMetadata."
+    docs: docs/09-mcp-and-multi-agent.md#external-agents-a2a-and-activity-protocol
+  AgentModelType:
+    description: "aISettings.model: which LLM the agent uses. The edit-agent rule is to use the no-kind form and set only modelNameHint, plus provider for non-OpenAI models. The kind: values name model channels the source doesn't explain."
+    docs: docs/03-agent.md#model-and-ai-settings
+  AgentModelType.modelNameHint: Which model to use, e.g. GPT5Chat (the template default) or Sonnet46. The schema doesn't enumerate the valid hints.
+  TestDefinitionBase:
+    description: "The definition: of a TestCaseComponent: a test set, a scripted test case, an evaluation set, its data rows, a multi-turn case or an evaluation run. Schema-only; nothing in the source repo authors these."
+    docs: docs/12-evaluations-and-testing.md#the-container-testcasecomponent
+  GraderBase:
+    description: "A grader that scores evaluation cases (10 kinds), roughly matching the UI's test methods: general quality, compare meaning, text similarity, exact match, keyword match, capability use, custom prompt. The mapping is by name only."
+    docs: docs/12-evaluations-and-testing.md#graders-graderbase
+  TestAssertionBase:
+    description: A check on the reply to one user turn of a scripted test case (SendUserActivity.activityAssertions). Nine kinds; schema-only.
+    docs: docs/12-evaluations-and-testing.md#assertions-testassertionbase
+
+  # --- Dialogs: topics, tools, child agents
+  AdaptiveDialog:
+    description: "A topic: a scripted conversation flow in topics/<Name>.topic.mcs.yml. beginDialog holds its trigger and the nodes to run. Under generative orchestration it can also declare inputs and outputs, so the orchestrator calls it like a function. Its schema name is `<agentSchema>.topic.<Name>`."
+    docs: docs/04-topics-and-triggers.md#anatomy-of-a-topic-file
+  AdaptiveDialog.beginDialog: "The trigger: one of the TriggerBase kinds (conventionally id: main), with the topic's nodes under actions:. Every real topic has one. To change the trigger kind, recreate the topic."
+  AdaptiveDialog.modelDescription: "What the topic does and when to use it: the routing signal under generative orchestration. Focus on the user's intent and name the key scenarios. System-triggered topics don't need one; omit it rather than writing `null`."
+  AdaptiveDialog.modelDisplayName: The name the orchestrator sees for the topic. No vendor guidance; topics normally rely on the `# Name:` comment and the intent displayName.
+  AdaptiveDialog.inputType: "Type declarations for the topic's inputs: a properties: map of displayName, description and type. Must match inputs. Put it at the AdaptiveDialog root, not inside beginDialog."
+  AdaptiveDialog.outputType: "Declares the topic's output variables; set them with SetVariable on Topic.<name> (TaskOutput is only for tools). If the topic only gathers data for a tool, output the data itself: an output like \"sent!\" makes the orchestrator think the job is done."
+  AdaptiveDialog.startBehavior: "What happens to topics already running when this one starts: Default, CancelOtherTopics, or UseLatestPublishedContentAndCancelOtherTopics (used on error handlers and reset topics so published content wins over stale in-flight dialogs)."
+  AdaptiveDialog.endAutomatically: Whether the topic ends when its last node finishes. (inferred)
+  AdaptiveDialog.recognizer: A topic-level recognizer (RegexRecognizer with regex intents). No vendor guidance.
+  AdaptiveDialog.triggers: Extra triggers. No vendor guidance; every vendor topic uses a single beginDialog.
+  AdaptiveDialog.conversionMetadata: Written by the tools; leave it alone.
+  TaskDialog:
+    description: "A tool: one file in actions/ that the orchestrator can call. modelDisplayName and modelDescription say what it is for, inputs/outputs are its parameters, and action: says what runs (a connector operation, flow, MCP server, another agent, ...). Connector and MCP tools must be added in the UI first, then pulled and edited."
+    docs: docs/08-tools-and-connectors.md#what-a-tool-is
+  TaskDialog.modelDisplayName: Name shown to the orchestrator and in the UI.
+  TaskDialog.modelDescription: "The routing signal: what the tool does, when to use it, and when not to. Vague descriptions cause wrong or missing tool calls. On an MCP server tool keep it on one line; multi-line descriptions have been reported to break tool registration."
+  TaskDialog.outputs: Output properties exposed to the orchestrator, each a TaskOutput whose propertyName must exist in the operation's output schema. For UnresolvedDynamicType outputs (e.g. SharePoint GetItems) find out the real column names first.
+  TaskDialog.outputMode: "`All` (the default, and usually right) exports all operation outputs. `Specific` limits them to those listed in outputs (inferred)."
+  TaskDialog.action: "What runs: one of the 10 TaskAction kinds. Never change its operationId or connectionReference; to call something else, add a new tool."
+  TaskDialog.triggerCondition: Whether the tool is currently available to the orchestrator. (inferred)
+  TaskDialog.confirmation: A message asking the user to confirm before the tool runs. (inferred)
+  TaskDialog.response: A fixed message sent after the tool runs. (inferred)
+  AgentDialog:
+    description: "A child agent: a specialist sub-agent in agents/<Name>/agent.mcs.yml that the parent orchestrator delegates to. Its beginDialog is an OnToolSelected trigger whose description is the routing signal. It is driven entirely by settings.instructions and must have no beginDialog.actions."
+    docs: docs/09-mcp-and-multi-agent.md#child-agents
+  AgentDialog.beginDialog: An OnToolSelected trigger with a required description (when to delegate here) and an optional condition. No actions.
+  AgentDialog.settings: The child's agent definition. settings.instructions is its system prompt (scope, tone, rules); other GptComponentMetadata fields are allowed but undocumented. To stop the child messaging the user directly, say so here and have it return outputs.
+  AgentDialog.inputType: "Declarations for the context the parent passes; must match inputs. Use `inputType: {}` if there are none."
+  AgentDialog.outputType: "What the child returns. Define outputs if the parent should deliver the answer; use `outputType: {}` if nothing structured is returned."
+
+  # --- Triggers
+  OnRecognizedIntent:
+    description: "Fires when the user's message matches the topic: by modelDescription under generative orchestration, or by intent.triggerQueries under classic orchestration. The most common trigger."
+    docs: docs/04-topics-and-triggers.md#intent-triggers
+  OnRecognizedIntentBase.intent: "The intent the topic handles: displayName plus triggerQueries (trigger phrases). Use `intent: {}` for a topic routed only by modelDescription and inputs."
+  Intent:
+    description: "The intent of an OnRecognizedIntent trigger: a displayName and trigger phrases. The vendor files only use displayName and triggerQueries."
+    docs: docs/04-topics-and-triggers.md#modeldescription-vs-trigger-phrases
+  Intent.triggerQueries: "Trigger phrases: 5-10 short, natural example utterances. The main routing signal under classic orchestration, only a hint under generative. Cover synonyms and mixed phrasings, and avoid overlap with other topics, which triggers disambiguation."
+  IntentBase.includeInOnSelectIntent: Whether the topic is offered as a choice during disambiguation (OnSelectIntent). Default true.
+  OnSelectIntent:
+    description: "Fires when several topics match closely: the Multiple Topics Matched system topic (disambiguation). Candidates are in System.Recognizer.IntentOptions; set System.Recognizer.SelectedIntent to run the chosen topic."
+    docs: docs/04-topics-and-triggers.md#disambiguation
+  OnSelectIntent.triggerBehavior: "`Default` or `Always`; the vendor disambiguation template uses `Always`. Only OnSelectIntent has this property."
+  OnUnknownIntent:
+    description: "Fires when no topic matched: the Fallback system topic. Commonly priority -1. System.FallbackCount counts consecutive fallbacks; under classic orchestration this is where knowledge search usually happens."
+    docs: docs/04-topics-and-triggers.md#fallback
+  OnEscalate:
+    description: Fires when the user asks for a human. Listed in the int-reference trigger table; no template.
+    docs: docs/04-topics-and-triggers.md#intent-triggers
+  OnConversationStart:
+    description: Fires when a conversation begins; used for the greeting topic. It doesn't fire in Microsoft 365 Copilot or other channel-embedded surfaces, so put initialisation in an OnActivity topic instead.
+    docs: docs/04-topics-and-triggers.md#greeting
+  OnActivity:
+    description: "Fires when an incoming activity of the given type arrives. With type: Message and an `IsBlank(Global.X)` condition it runs once, on the first real message (the just-in-time initialisation pattern); with type: InstallationUpdate it handles Teams app reinstalls."
+    docs: docs/04-topics-and-triggers.md#conversation-lifecycle-triggers
+  OnActivity.type: "The ActivityType to react to: Message, Event, InstallationUpdate, ConversationUpdate, Invoke, Typing, ..."
+  OnInactivity:
+    description: Fires when the conversation has been idle for durationInSeconds. The Teams-hardening pattern clears variables and history here and cancels running topics.
+    docs: docs/04-topics-and-triggers.md#inactivity-reset-teams
+  OnInactivity.durationInSeconds: "Idle time before the trigger fires: 900, 1800 (default), 2700, 3600, or an expression. The Teams-hardening pattern uses 43200, outside the listed choices."
+  OnPlanComplete:
+    description: Fires after the generative orchestrator finishes a plan. (inferred)
+    docs: docs/04-topics-and-triggers.md#conversation-lifecycle-triggers
+  OnError:
+    description: Fires when a runtime error occurs. Read System.Error.Message, .Code and .SubCode. The vendor handler shows details only in the Test pane, logs telemetry and ends with CancelAllDialogs. ContentFiltered subcodes come only from Azure OpenAI models.
+    docs: docs/04-topics-and-triggers.md#error-handler
+  OnSignIn:
+    description: Fires when sign-in is required. Read System.SignInReason, then show the sign-in card with an OAuthInput node.
+    docs: docs/04-topics-and-triggers.md#sign-in
+  OnSystemRedirect:
+    description: Fires only when another topic jumps here with BeginDialog or ReplaceDialog. For helper topics with no user-facing trigger, such as a reset-conversation topic.
+    docs: docs/04-topics-and-triggers.md#system-triggers
+  OnRedirect:
+    description: "Entry point on a connected agent when another agent calls it. Declare `inputType: {}` and `outputType: {}` on the topic and read the caller's inputs from System.Activity.Value."
+    docs: docs/09-mcp-and-multi-agent.md#connected-agents
+  OnEventActivity:
+    description: Fires when an event activity with the given eventName arrives. No guidance in the source repo beyond the property name.
+    docs: docs/04-topics-and-triggers.md#event-and-interception-triggers
+  OnToolSelected:
+    description: "The trigger of a child agent (AgentDialog): fires when the parent orchestrator routes to it. Accepts only id, description, condition, priority, runOnce and actions, and child agents should have no actions."
+    docs: docs/09-mcp-and-multi-agent.md#child-agents
+  OnToolSelected.description: "Required. The routing signal the parent orchestrator reads to decide when to delegate: be specific and action-oriented, and include example user messages. intent.triggerQueries isn't allowed on this trigger, so put example phrasings here."
+  OnKnowledgeRequested:
+    description: Fires every time the orchestrator runs a knowledge search (the UniversalSearchTool). Rewrite System.SearchQuery, or write your own rows (Content, ContentLocation, Title) to System.SearchResults. YAML-only, and it adds latency to every search, so add a condition.
+    docs: docs/07-knowledge.md#custom-knowledge-via-onknowledgerequested-yaml-only
+  OnGeneratedResponse:
+    description: Fires just before an AI-generated answer is sent. Read System.Response.FormattedText; set System.ContinueResponse to false to suppress it and send your own. YAML-only; used to strip citation markers or block leaked tool-call JSON.
+    docs: docs/04-topics-and-triggers.md#intercepting-generated-answers
+  OnOutgoingMessage:
+    description: "Non-functional (as of 2026-03-15): it exists in the schema but doesn't fire at runtime. Use OnGeneratedResponse to act on AI-generated answers."
+    docs: docs/14-gotchas.md#onoutgoingmessage-doesnt-fire
+  OnDtmfKeyPress:
+    description: "Voice: fires when the caller presses the given DTMF (keypad) key. (inferred)"
+    docs: docs/04-topics-and-triggers.md#voice-ivr-triggers
+  OnDtmfKeyPress.dtmfKey: "Required: Num0 to Num9, PoundKey or StarKey."
+  OnUnknownDtmfKey:
+    description: "Voice: fires when the caller presses an unmapped key. (inferred)"
+    docs: docs/04-topics-and-triggers.md#voice-ivr-triggers
+  OnSilence:
+    description: "Voice: fires when the caller says nothing for a while (silenceDetectionTimeoutInMilliseconds). (inferred)"
+    docs: docs/04-topics-and-triggers.md#voice-ivr-triggers
+  OnUnrecognizedSpeech:
+    description: "Voice: fires when speech can't be recognised. (inferred)"
+    docs: docs/04-topics-and-triggers.md#voice-ivr-triggers
+  OnAnsweringMachineDetected:
+    description: "Voice: fires when an outbound call reaches voicemail. (inferred)"
+    docs: docs/04-topics-and-triggers.md#voice-ivr-triggers
+  RecurrenceTrigger:
+    description: "Starts an autonomous run on a schedule. The trigger itself has no schedule fields. Autonomous triggers need Power Platform setup beyond YAML: create them in the UI, then edit."
+    docs: docs/04-topics-and-triggers.md#scheduled-and-connector-triggers
+  CreateConversationConnectorTrigger:
+    description: A connector event (e.g. a new email) starts a new conversation for an autonomous agent. Needs connectionReference and connectorTriggerId. Create it in the UI, then edit; the event payload's shape isn't documented.
+    docs: docs/10-flows-and-autonomous-triggers.md#topic-triggers-for-scheduled-and-connector-events
+  CreateConversationConnectorTrigger.connectorTriggerId: The connector's trigger ID, from the connector catalogue's Triggers list, e.g. Outlook OnNewEmailV3 or SharePoint GetOnNewItems.
+  ContinueConversationConnectorTrigger:
+    description: A connector event continues an existing conversation. Same properties as CreateConversationConnectorTrigger; create it in the UI.
+    docs: docs/10-flows-and-autonomous-triggers.md#topic-triggers-for-scheduled-and-connector-events
+  ContinueConversationConnectorTrigger.connectorTriggerId: The connector's trigger ID, from the connector catalogue's Triggers list.
+
+  # --- Nodes: messaging and questions
+  SendActivity:
+    description: "Sends a message to the user: plain text, a template, message variations, speech, quick replies or card attachments. Under generative orchestration prefer topic outputs for final results, so the orchestrator writes the answer."
+    docs: docs/05-nodes.md#sendactivity
+  SendActivity.activity: "The message: a plain string, a `{...}` template, or an object with text (variations), speak, quickReplies and attachments. Most channels collapse plain newlines, so use `<br />` for breaks; quote values that start with `{` or contain `: `."
+  UpdateActivity:
+    description: Replaces a previously sent message (activityId, new activity). No vendor guidance.
+    docs: docs/05-nodes.md#updateactivity-and-deleteactivity
+  DeleteActivity:
+    description: Deletes a previously sent message (activityId). No vendor guidance.
+    docs: docs/05-nodes.md#updateactivity-and-deleteactivity
+  Question:
+    description: Asks the user something and stores the recognised answer in a variable; the entity decides what counts as valid. Under generative orchestration use it only for conditional questions or confirmations, and topic inputs for anything the topic always needs. Compare text answers with double quotes (`=Topic.Choice = "Basic"`).
+    docs: docs/05-nodes.md#question
+  Question.variable: Where the answer goes. Use `init:Topic.X` on the first assignment.
+  Question.prompt: The question text; same forms as SendActivity.activity. Use `<br />` for line breaks.
+  Question.entity: "What to recognise: a prebuilt entity name (StringPrebuiltEntity, NumberPrebuiltEntity, BooleanPrebuiltEntity, DateTimePrebuiltEntity, EmailPrebuiltEntity, ...), a closed list, a regex or a dynamic list."
+  Question.alwaysPrompt: true = ask even if the variable already has a value. Vendor templates set it to true.
+  Question.skipQuestionMode: When an existing value lets the question be skipped; this is how slot filling works. No vendor guidance beyond the value names.
+  Question.validation: An extra `=` boolean check on the recognised value, e.g. `=EndsWith(Topic.WorkEmail, "@contoso.com")` (inferred).
+  Question.invalidPrompt: Shown when validation fails (inferred).
+  Question.defaultValue: Value used after the retries run out (inferred).
+  Question.defaultValueResponse: Message sent when the default value is used after retries run out (inferred).
+  InputDialog.interruptionPolicy: "Whether the user's reply can switch to another topic while this node waits. Vendor templates set `allowInterruption: false`."
+  InputDialog.repeatCount: "How many times to re-prompt after an unrecognised answer: 0, 1 or 2 (default 2; inferred from the name)."
+  InputDialog.unrecognizedPrompt: Message sent when nothing is recognised and the user is re-prompted.
+  InterruptionPolicy.allowInterruption: false = the user's reply can't switch to another topic. Default true; vendor templates set false on questions.
+  AdaptiveCardPrompt:
+    description: Shows an Adaptive Card and waits until the user submits it (the UI's Ask with Adaptive Card). Requires card, output, outputType and an Action.Submit button, even for display-only cards. The vendor skill uses it for every Adaptive Card.
+    docs: docs/11-messages-and-adaptive-cards.md#adaptivecardprompt
+  AdaptiveCardPrompt.card: "The card: JSON in a `card: |` literal block (never `>` or inline) with $schema and version 1.5, or a `=` Power Fx record (Formula mode). JSON cards are static: `{Topic.X}` isn't evaluated inside them."
+  AdaptiveCardPrompt.output: "A binding: map of card input id (or Action.Submit data key) to variable name, with no `=` and no init:. The keys must match the input ids exactly."
+  AdaptiveCardPrompt.outputType: "A properties: map giving the type of each bound field (String, Boolean, Number, ...). Required."
+  AdaptiveCardPrompt.repeatCount: "How many times the card is re-sent if the user types text instead of submitting: 0, 1 or 2 (default 2)."
+  CSATQuestion:
+    description: Asks the built-in CSAT (customer satisfaction, 1-5) rating question; the results feed Copilot Studio analytics. Listed in int-reference; no example.
+    docs: docs/05-nodes.md#adaptivecardprompt-csatquestion-oauthinput
+  OAuthInput:
+    description: Shows a sign-in card (title, text, resource). Used in the OnSignIn topic.
+    docs: docs/05-nodes.md#adaptivecardprompt-csatquestion-oauthinput
+
+  # --- Nodes: variables
+  SetVariable:
+    description: Sets a variable to a literal or a Power Fx expression; use it for almost any computation, copy or flag.
+    docs: docs/05-nodes.md#setvariable
+  SetVariable.variable: The target variable name, written without `=`. Prefix the first assignment of a topic variable with `init:` (Topic.* only; globals and System.* never take it).
+  SetVariable.value: "A literal (true and numbers keep their type) or an `=` expression. Without `=`, `Topic.A + 1` is literal text. Quote values that start with `={` or contain `: `."
+  SetTextVariable:
+    description: "Sets a variable to a text template with `{...}` interpolation; use it to turn non-text values into text or set a literal string. YAML-only: it doesn't render on the authoring canvas."
+    docs: docs/05-nodes.md#settextvariable
+  SetTextVariable.value: Literal text with optional `{...}` expressions.
+  SetMultipleVariables:
+    description: "Several assignments in one node: assignments: is a list of {variable, value}. No vendor guidance."
+    docs: docs/05-nodes.md#other-variable-nodes
+  ParseValue:
+    description: Parses a value (typically JSON text) into a typed variable, using valueType (a data type). errorPolicy is DefaultBlank (default) or ThrowError. No vendor guidance.
+    docs: docs/05-nodes.md#other-variable-nodes
+  ResetVariable:
+    description: Clears one variable. No vendor guidance.
+    docs: docs/05-nodes.md#other-variable-nodes
+  ClearAllVariables:
+    description: Resets a whole group of variables. Used in reset, inactivity and start-over topics.
+    docs: docs/05-nodes.md#clearallvariables
+  ClearAllVariables.variables: "Which group to clear: ConversationScopedVariables (default), ConversationHistory (the history the AI sees), UserScopedVariables or AllGlobalVariables. The vendor reset topic uses two nodes to clear both scoped variables and history."
+  EditTable:
+    description: Changes a table (list) variable in place, e.g. appending a row. The disambiguation template uses it to add a "None of these" option.
+    docs: docs/05-nodes.md#edittable
+  EditTable.itemsVariable: The table variable to change.
+  EditTable.changeType: "The operation: Add (default), Remove, Clear, TakeFirst or TakeLast."
+  EditTable.value: The row to add or remove, as a value or `=` expression. Quote record literals.
+  EditTable.resultVariable: Receives the taken or removed item. (inferred)
+  EditTableV2:
+    description: "Newer form of EditTable: changeType is an object (AddItemOperation or RemoveItemOperation with value, TakeFirstItemOperation, TakeLastItemOperation, ClearItemsOperation). No vendor guidance."
+    docs: docs/05-nodes.md#other-variable-nodes
+
+  # --- Nodes: branching and loops
+  ConditionGroup:
+    description: If / else-if / else. Conditions are checked in order and the first true one runs its actions; if none is true, elseActions runs. A chain that only chooses which topic to call can often be one BeginDialog with a Switch() expression.
+    docs: docs/05-nodes.md#conditiongroup
+  ConditionGroup.conditions: The branches, each a ConditionItem with id, condition and actions. Every branch needs its own unique id.
+  ConditionGroup.elseActions: Nodes to run when no condition is true.
+  ConditionItem:
+    description: "One branch of a ConditionGroup: an id, an `=` condition and the actions to run when it is the first true condition."
+    docs: docs/05-nodes.md#conditiongroup
+  ConditionItem.id: Unique within the topic, like a node ID (e.g. `conditionItem_Qw3rTy`).
+  ConditionItem.condition: A Power Fx boolean starting with `=`. Compare text with double quotes (`=Topic.Choice = "Basic"`); single quotes delimit names, not text.
+  ConditionItem.actions: Nodes to run when this is the first true condition.
+  Foreach:
+    description: "Loops over a table: items is the `=` table expression, value the loop variable, index the position, actions the body. Not in the vendor repo; purpose inferred from the schema."
+    docs: docs/05-nodes.md#loops-and-structure
+  BreakLoop:
+    description: Leaves the enclosing Foreach. (inferred)
+    docs: docs/05-nodes.md#loops-and-structure
+  ContinueLoop:
+    description: Skips to the next iteration of the enclosing Foreach. (inferred)
+    docs: docs/05-nodes.md#loops-and-structure
+  GotoAction:
+    description: Jumps to another node in the same topic. (inferred)
+    docs: docs/05-nodes.md#loops-and-structure
+  GotoAction.actionId: The id of the target node.
+  ActionScope:
+    description: Groups nodes into a block (actions). (inferred)
+    docs: docs/05-nodes.md#loops-and-structure
+  DisconnectedNodeContainer:
+    description: "Holds nodes not connected to the flow: leftovers from the authoring canvas. (inferred)"
+    docs: docs/05-nodes.md#loops-and-structure
+
+  # --- Nodes: topic navigation
+  BeginDialog:
+    description: Calls another topic (or child agent) and comes back when it ends. Use it for escalation, shared sub-flows, child agents and OnSystemRedirect helpers.
+    docs: docs/05-nodes.md#begindialog
+  BaseInvokeDialog.dialog: Schema name of the topic to call, `<agentSchema>.topic.<TopicName>`, or an `=` expression such as Switch(...) for a dynamic redirect. Strict generic JSON-Schema validators reject `=` values here, though the Copilot Studio tooling accepts them.
+  BaseInvokeDialogOrSelf.input: "Values for the called topic's inputs: a binding: map of input name to value or `=` expression."
+  BeginDialog.output: "Where to store the called topic's outputs: a binding: map of output name to variable name, with no `=`."
+  ReplaceDialog:
+    description: "Goes to another topic and doesn't come back: the current topic is replaced. Same dialog and input as BeginDialog, but no output. The disambiguation template uses it to hand over to Fallback."
+    docs: docs/05-nodes.md#other-navigation-nodes
+  RepeatDialog:
+    description: Restarts the current topic. (inferred)
+    docs: docs/05-nodes.md#other-navigation-nodes
+  EndDialog:
+    description: Ends the current topic and returns to the caller, if any.
+    docs: docs/05-nodes.md#enddialog-and-cancelalldialogs
+  EndDialog.clearTopicQueue: Default true. The fallback-search pattern uses it to end the topic and clear any queued topics once an answer was found.
+  CancelAllDialogs:
+    description: Ends every running topic. Error handlers and reset topics finish with it.
+    docs: docs/05-nodes.md#enddialog-and-cancelalldialogs
+  CancelDialog:
+    description: Cancels the current topic, optionally raising eventName/eventValue. (inferred)
+    docs: docs/05-nodes.md#other-navigation-nodes
+  EndConversation:
+    description: Ends the whole conversation. (inferred)
+    docs: docs/05-nodes.md#other-navigation-nodes
+  RecognizeIntent:
+    description: Runs intent recognition on userInput. (inferred)
+    docs: docs/05-nodes.md#other-navigation-nodes
+  DisableTrigger:
+    description: Disables the trigger of the topic named in dialog. (inferred)
+    docs: docs/05-nodes.md#other-navigation-nodes
+  ActivateExternalTrigger:
+    description: Switches on an external (autonomous) trigger from within a conversation and names the topic (dialog) that handles it when it fires. (inferred)
+    docs: docs/10-flows-and-autonomous-triggers.md#activateexternaltrigger-node
+
+  # --- Nodes: AI and knowledge
+  SearchAndSummarizeContent:
+    description: "Generative answers: searches knowledge, has the model write a grounded answer with citations, then sends it or stores it. Knowledge is searched automatically under generative orchestration, so add this node only for explicit control. Run CreateSearchQuery first rather than passing raw System.Activity.Text."
+    docs: docs/07-knowledge.md#searchandsummarizecontent
+  SearchAndSummarizeContent.knowledgeSources: "Restricts the search: kind: SearchSpecificKnowledgeSources with a knowledgeSources: list of knowledge schema names (copy them from knowledge/), or SearchAllKnowledgeSources. Omit it to search everything. There is no knowledgeSourceIds property."
+  SearchAndSummarizeContent.applyModelKnowledgeSetting: true also lets the model use its general knowledge; false restricts the answer to the configured sources.
+  SearchAndSummarizeContent.responseCaptureType: TextOnly (default) or FullResponse, which captures the structured response (content, markdown and citations) in variable.
+  SearchAndSummarizeContent.fileSearchDataSource: "searchFilesMode: DoNotSearchFiles, SearchAllFiles or SearchSpecificFiles (with files:). Controls whether uploaded files are searched."
+  SearchAndSummarizeContent.webBrowsing: Also search the web through Bing (the vendor documents this for SearchKnowledgeSources).
+  SearchAndSummarizeContent.searchEmails: Also search the user's email. (inferred)
+  SearchAndSummarizeContent.customDataSource: An ad-hoc source defined inline on the node; searchResults takes an `=` expression. (inferred)
+  SearchAndSummarizeContent.publicDataSource: An ad-hoc public-site source defined inline on the node rather than as a knowledge file. (inferred)
+  SearchAndSummarizeContent.sharePointSearchDataSource: An ad-hoc SharePoint source defined inline on the node rather than as a knowledge file. (inferred)
+  SearchAndSummarizeContent.modality: "Output form for voice channels: Automatic (default), Text, Speech or TextAndSpeech. (inferred)"
+  InvokePromptAction.autoSend: true (default) sends the answer to the chat. false stores it in variable, so you can send it yourself, put it in a card or return it as a topic output.
+  InvokePromptAction.variable: "Where the answer is stored. Blank means nothing was found. With responseCaptureType: FullResponse, read .Text.Content, .Text.MarkdownContent and .Text.CitationSources."
+  OpenAIDialogAction.userInput: "What to answer, as an `=` expression: a topic input, a crafted expression, or for knowledge searches `=Topic.SearchQuery.SearchQuery` from a CreateSearchQuery node."
+  OpenAIDialogAction.moderationLevel: "Content moderation level: Minimum to Maximum, default High."
+  OpenAIDialogAction.historyType: "How much conversation history the model sees: kind: ConversationHistory (numberOfPastUserMessagesToInclude, default 5) or kind: NoHistory."
+  OpenAIDialogAction.additionalInstructions: Extra instructions for the answering model, e.g. "Answer in two sentences or fewer." (inferred).
+  OpenAIDialogAction.isFileAnalysisEnabled: Allow analysis of files the user uploads. (inferred)
+  SearchKnowledgeSources:
+    description: Searches knowledge and returns the raw results, with no AI summary. Use it when summarising could lose critical detail (policy, HR or legal text) or to process results yourself. Run CreateSearchQuery first.
+    docs: docs/07-knowledge.md#searchknowledgesources
+  SearchKnowledgeSources.userInput: The search query; same options as SearchAndSummarizeContent.userInput.
+  SearchKnowledgeSources.result: Variable that receives the raw results.
+  SearchKnowledgeSources.knowledgeSources: Same format as SearchAndSummarizeContent.knowledgeSources; omit it to search all sources.
+  SearchKnowledgeSources.webBrowsing: true also searches the web through Bing.
+  AnswerQuestionWithAI:
+    description: Answers from conversation history and general model knowledge only; it doesn't consult knowledge sources. Use it only for deliberately ungrounded answers; the orchestrator usually answers general questions on its own.
+    docs: docs/07-knowledge.md#answerquestionwithai
+  CreateSearchQuery:
+    description: Uses AI and the conversation history to rewrite the user's message into a self-contained search query. The vendor skills say to always run it before SearchAndSummarizeContent or SearchKnowledgeSources; read the query as `Topic.<result>.SearchQuery`.
+    docs: docs/07-knowledge.md#always-run-createsearchquery-first
+  CreateSearchQuery.userInput: Raw input to rewrite, as an `=` expression; defaults to `=System.Activity.Text`.
+  CreateSearchQuery.result: Variable for the result. The query string is its .SearchQuery field, e.g. `Topic.SearchQuery.SearchQuery`.
+  CreateSearchQuery.historyType: "How much conversation history to use: kind: ConversationHistory (numberOfPastUserMessagesToInclude, default 5) or kind: NoHistory."
+  SearchAndSummarizeWithCustomModel:
+    description: Generative answers like SearchAndSummarizeContent, but with an external model under modelConfiguration. No vendor guidance.
+    docs: docs/07-knowledge.md#answerquestionwithai
+  InvokeCustomModelAction:
+    description: Calls a custom or external model (modelConfiguration). No vendor guidance.
+    docs: docs/05-nodes.md#ai--knowledge
+  InvokeAIBuilderModelAction:
+    description: Runs an AI Builder model or prompt by aIModelId, with input/output bindings. The model must be created in the UI; YAML can only reference it.
+    docs: docs/05-nodes.md#ai--knowledge
+
+  # --- Nodes: integration
+  InvokeConnectorAction:
+    description: "Calls a connector operation inline in a topic: no tool file, and the orchestrator isn't involved. Use it for deterministic calls such as loading the user's profile. The connection reference must already exist (it is created in the UI)."
+    docs: docs/08-tools-and-connectors.md#inline-connector-calls-in-topics
+  InvokeConnectorAction.operationId: The connector operation, e.g. GetItems. Check it against the connector catalogue or the UI; vendor examples use UserGet_V2, which the bundled catalogue doesn't have.
+  InvokeConnectorAction.connectionProperties: "mode: Maker (default; the author's connection) or Invoker (each user signs in)."
+  ConnectorOperationBase.connectionReference: Logical name of the connection reference. Copy it from connectionreferences.mcs.yml or an existing tool; never invent it.
+  ConnectorOperationBase.errorHandling: "What a failed call does: RaiseErrorBehavior (or omitting errorHandling) stops the topic and runs OnError; ContinueOnErrorBehavior continues and stores the status code and error body in variables. Behaviour inferred."
+  ExternalAction.input: "Inputs to the call: a binding: map of parameter name to value or `=` expression. For connector operations the keys are `parameters/<name>`, e.g. `parameters/$filter` with no inner quotes; vendor examples that skip the binding: level don't validate."
+  ExternalAction.output: "Where results go: a binding: map of output name to variable (no `=`), or kind: SingleVariableOutputBinding with variable: to store the whole response as a record (read fields as Topic.X.field)."
+  InvokeFlowAction:
+    description: Runs a Power Automate cloud flow or agent flow at a fixed point in a topic, passing inputs and storing outputs in variables. The flow itself is built outside YAML, with an agent trigger and typed inputs and outputs.
+    docs: docs/10-flows-and-autonomous-triggers.md#calling-a-flow-from-a-topic
+  InvokeFlowAction.flowId: The flow to run; inferred to be the flow's workflow GUID (CloudFlowDefinition.workflowId).
+  InvokeMcpToolAction:
+    description: "Calls one tool on an MCP server at a fixed point in a topic. Schema-only: the vendor pattern says topics can't call MCP tools directly, so validate with the language server and test before relying on it."
+    docs: docs/09-mcp-and-multi-agent.md#the-invokemcptoolaction-node-schema-only
+  InvokeMcpToolAction.serverSchemaName: "Which MCP server to use: inferred to be the schema name of its TaskDialog. No documented example of the format."
+  InvokeMcpToolAction.toolName: Which of the server's tools to call.
+  InvokeSkillAction:
+    description: Calls a Bot Framework skill (skillId, actionId). No vendor guidance.
+    docs: docs/05-nodes.md#integration
+  HttpRequestAction:
+    description: "A raw HTTP call from a topic to a REST endpoint that has no connector. The vendor skills don't use it, so its shapes come from the schema: validate, then test. Keep secrets out of literal headers."
+    docs: docs/08-tools-and-connectors.md#http-requests-from-a-topic-httprequestaction
+  HttpRequestAction.url: "Request URL: a string or `=` expression."
+  HttpRequestAction.method: Get (default), Post, Patch, Put or Delete, or an `=` expression.
+  HttpRequestAction.headers: Map of header name to string or `=` expression. Don't put secrets in literal values; agent YAML is meant to be committed to source control.
+  HttpRequestAction.body: "The request body: NoRequestContent, JsonRequestContent (content: a value or Power Fx record) or RawRequestContent (contentType plus content)."
+  HttpRequestAction.response: Variable that receives the parsed response body.
+  HttpRequestAction.responseSchema: "A data type for the response (e.g. kind: Record with properties:), so fields such as Topic.X.id are typed."
+  HttpRequestAction.responseHeaders: Variable that receives the response headers.
+  HttpRequestAction.errorHandling: RaiseErrorBehavior (default) stops the topic and runs OnError; ContinueOnErrorBehavior continues and stores the HTTP status and error body in variables. Behaviour inferred.
+  WaitForConnectorTrigger:
+    description: Pauses the topic until a connector trigger fires, then continues with the trigger's output. Same properties as InvokeConnectorAction. (inferred)
+    docs: docs/10-flows-and-autonomous-triggers.md#waitforconnectortrigger-node
+
+  # --- Nodes: conversation control and telemetry
+  TransferConversation:
+    description: Hands the conversation to a human agent or phone number (messageToAgent, context, telephoneNumber). (inferred)
+    docs: docs/05-nodes.md#conversation-control
+  TransferConversationV2:
+    description: "Newer transfer node: transferType is TransferToAgent (messageToAgent, context) or TransferToPhoneNumber (phoneNumber, SIP headers, dtmfSequence). (inferred)"
+    docs: docs/05-nodes.md#conversation-control
+  SignOutUser:
+    description: Signs the user out. (inferred)
+    docs: docs/05-nodes.md#conversation-control
+  GetActivityMembers:
+    description: Reads the members of an activity into variable. (inferred)
+    docs: docs/05-nodes.md#conversation-control
+  GetConversationMembers:
+    description: Reads the members of the conversation (e.g. a Teams group chat) into variable. (inferred)
+    docs: docs/05-nodes.md#conversation-control
+  EmitEvent:
+    description: Raises an event (eventName, eventValue; eventType ActivityIfUnhandled, Activity or DialogEvent). (inferred)
+    docs: docs/05-nodes.md#conversation-control
+  LogCustomTelemetryEvent:
+    description: Writes a custom telemetry event, viewable in Application Insights if it is connected. Use it in error handlers and at key business steps.
+    docs: docs/05-nodes.md#logcustomtelemetryevent
+  LogCustomTelemetryEvent.eventName: The event name you will search for in Application Insights.
+  LogCustomTelemetryEvent.properties: Custom dimensions, as an `=` record expression. Quote the whole value, because it starts with `={`.
+
+  # --- Bindings, error handling, request content, history
+  ActionInputBinding:
+    description: "Input map, written without kind: `binding:` of input name to value or `=` expression. Used by BeginDialog, ReplaceDialog and the integration nodes."
+    docs: docs/05-nodes.md#input-and-output-bindings
+  ActionOutputBinding:
+    description: "Output map, written without kind: `binding:` of output name to variable name. No `=` on the variable."
+    docs: docs/05-nodes.md#input-and-output-bindings
+  SingleVariableOutputBinding:
+    description: "Stores the whole response (a record) in one variable, e.g. `variable: init:Topic.Profile`; read fields as Topic.Profile.field."
+    docs: docs/05-nodes.md#input-and-output-bindings
+  SingleValueInputBinding:
+    description: "Passes a single input value (value: =...). No vendor example."
+    docs: docs/05-nodes.md#input-and-output-bindings
+  RaiseErrorBehavior:
+    description: "On failure an error is raised: the topic stops and the agent's OnError topic runs. Same as omitting errorHandling. Behaviour inferred."
+    docs: docs/08-tools-and-connectors.md#error-handling
+  ContinueOnErrorBehavior:
+    description: On failure the topic continues. statusCode and errorResponseBody name variables that receive the HTTP status and error body, so you can branch on them. Behaviour inferred.
+    docs: docs/08-tools-and-connectors.md#error-handling
+  NoRequestContent:
+    description: No request body; typical for Get and Delete.
+    docs: docs/08-tools-and-connectors.md#http-requests-from-a-topic-httprequestaction
+  JsonRequestContent:
+    description: "A JSON request body: content is a value or a Power Fx record or table."
+    docs: docs/08-tools-and-connectors.md#http-requests-from-a-topic-httprequestaction
+  RawRequestContent:
+    description: "Any other request body (form-encoded data, XML, plain text): contentType plus content (string or expression)."
+    docs: docs/08-tools-and-connectors.md#http-requests-from-a-topic-httprequestaction
+  ConversationHistory:
+    description: Include recent conversation history; numberOfPastUserMessagesToInclude defaults to 5.
+    docs: docs/07-knowledge.md#always-run-createsearchquery-first
+  NoHistory:
+    description: Send no conversation history.
+    docs: docs/07-knowledge.md#always-run-createsearchquery-first
+  ConnectionProperties.mode: "Whose credentials the call uses: Maker (default; the author's connection, shared by every user) or Invoker (each end user signs in). Invoker needs user authentication configured on the agent."
+
+  # --- Tool actions and inputs
+  InvokeConnectorTaskAction:
+    description: A connector operation as a tool (Outlook, SharePoint, Dataverse, a custom connector, ...); int-reference calls it "always" the kind for connector tools. Add the tool in the UI (which creates the connection reference), then pull and edit.
+    docs: docs/08-tools-and-connectors.md#connector-tools-invokeconnectortaskaction
+  InvokeConnectorTaskAction.connectionReference: Logical name of the connection reference. Never change it.
+  InvokeConnectorTaskAction.operationId: "The connector operation, e.g. GetItems or SendEmailV2. Never change it: to call a different operation, add a new tool."
+  InvokeConnectorTaskAction.connectionProperties: "mode: Maker (default) or Invoker. After changing mode the user may have to reconfigure the connection in the portal."
+  InvokeConnectorTaskAction.dynamicInputSchema: Resolved input shape for operations whose inputs depend on design-time choices (e.g. a SharePoint list's columns). (inferred)
+  InvokeConnectorTaskAction.dynamicOutputSchema: Resolved output shape for operations whose outputs depend on design-time choices. (inferred)
+  InvokeFlowTaskAction:
+    description: A cloud flow or agent flow as a tool, by flowId; the orchestrator decides when to run it from the TaskDialog's modelDescription. Input and output propertyNames must match the flow's (inferred). Best added in the UI, then edited.
+    docs: docs/10-flows-and-autonomous-triggers.md#a-flow-as-a-tool
+  InvokeExternalAgentTaskAction:
+    description: An MCP server, or an external agent over A2A or the Activity protocol, as a tool; operationDetails.kind says which. One TaskDialog represents a whole MCP server, whose tools the orchestrator discovers dynamically. Add it in the UI, then pull.
+    docs: docs/09-mcp-and-multi-agent.md#mcp-servers-as-tools
+  InvokeExternalAgentTaskAction.connectionReference: The connection reference created by the UI. Never change it.
+  InvokeExternalAgentTaskAction.operationDetails: "The protocol: ModelContextProtocolMetadata (MCP), AgentToAgentProtocolMetadata (A2A) or ActivityProtocolMetadata, each with an operationId that must never change."
+  InvokeExternalAgentTaskAction.historyType: "How much conversation history is sent: kind: ConversationHistory or kind: NoHistory. (inferred)"
+  InvokeConnectedAgentTaskAction:
+    description: Calls another published Copilot Studio agent (a connected agent) as a tool. It must be published and reachable from the same environment or tenant, and its owners must set up an OnRedirect topic and external-source global variables on the called side.
+    docs: docs/09-mcp-and-multi-agent.md#connected-agents
+  InvokeConnectedAgentTaskAction.botSchemaName: The connected agent's schemaName, from its settings.mcs.yml or Agent details in the UI.
+  InvokeConnectedAgentTaskAction.historyType: "How much of the conversation it sees: kind: ConversationHistory (numberOfPastUserMessagesToInclude, default 5) or kind: NoHistory."
+  InvokeConnectedAgentTaskAction.interruptionPolicy: Whether the user can switch topics while the connected agent is running. (inferred)
+  InvokeConnectedAgentTaskAction.shouldSendStartConversation: Whether to send it a conversation-start event first. (inferred)
+  InvokeAgentTaskAction:
+    description: Calls an agent component by gptComponentSchemaName (plus inputType/outputType). No vendor guidance.
+    docs: docs/09-mcp-and-multi-agent.md#connected-agents
+  InvokeAIPluginTaskAction:
+    description: Calls an AI plugin operation (entityKey, with maker or invoker connection references). No vendor guidance.
+    docs: docs/08-tools-and-connectors.md#the-10-action-kinds
+  InvokeClientTaskAction:
+    description: An action carried out by the client (the chat host); requires clientActionInputSchema. No vendor guidance.
+    docs: docs/08-tools-and-connectors.md#the-10-action-kinds
+  InvokeComputerUsingAgentTaskAction:
+    description: A computer-using agent that operates a website or desktop app through its UI, with instructions, a model and an allowlist of websites and desktop apps. For systems with no API. No vendor guidance.
+    docs: docs/08-tools-and-connectors.md#the-10-action-kinds
+  InvokeAIBuilderModelTaskAction:
+    description: An AI Builder model or prompt as a tool, by aIModelId. Create these in the UI; YAML can only reference them.
+    docs: docs/08-tools-and-connectors.md#the-10-action-kinds
+  InvokeSkillTaskAction:
+    description: A Bot Framework skill (a bot exposed as a callable sub-component) as a tool, by skillId and actionId. No vendor guidance.
+    docs: docs/08-tools-and-connectors.md#the-10-action-kinds
+  ModelContextProtocolMetadata:
+    description: Marks an InvokeExternalAgentTaskAction as an MCP server. operationId identifies the MCP operation; never change it. You can't add an MCP server from YAML.
+    docs: docs/09-mcp-and-multi-agent.md#mcp-servers-as-tools
+  ModelContextProtocolMetadata.tools: "kind: UseAllTools, or kind: UseSpecificTools with a tools: list of names, to limit which of the server's tools are exposed. (inferred)"
+  ModelContextProtocolMetadata.knownTools: Cached tool definitions (name, description, inputSchema, outputSchema). (inferred)
+  ModelContextProtocolMetadata.isElicitationEnabled: Lets the server ask the user follow-up questions (MCP elicitation). (inferred)
+  AgentToAgentProtocolMetadata:
+    description: "Marks an InvokeExternalAgentTaskAction as an external agent over A2A, the open agent-to-agent HTTP protocol. Schema-only: no vendor guidance or examples. Add the agent in the UI first, then pull and edit."
+    docs: docs/09-mcp-and-multi-agent.md#external-agents-a2a-and-activity-protocol
+  ActivityProtocolMetadata:
+    description: "Marks an InvokeExternalAgentTaskAction as an external agent over the Bot Framework activity protocol (inferred). Schema-only: no vendor guidance or examples."
+    docs: docs/09-mcp-and-multi-agent.md#external-agents-a2a-and-activity-protocol
+  AlwaysRequireMCPApproval:
+    description: By its name, requires user approval before an MCP tool call runs. No other definition references it, so there's no documented place to put it; treat it as not yet usable from YAML.
+    docs: docs/09-mcp-and-multi-agent.md#mcp-approval-kinds
+  NeverRequireMCPApproval:
+    description: By its name, lets MCP tool calls run without user approval. No other definition references it; treat it as not yet usable from YAML.
+    docs: docs/09-mcp-and-multi-agent.md#mcp-approval-kinds
+  AutomaticTaskInput:
+    description: An input the orchestrator fills from the conversation, asking the user only if it must. Prefer it over Question nodes for information a topic always needs. Don't add these to MCP tools, which discover parameters themselves.
+    docs: docs/08-tools-and-connectors.md#inputs-automatic-vs-manual
+  TaskInput.propertyName: The input's name. On a tool it must match the operation's parameter name exactly (OData names as "'$filter'"); in a topic the value is available as Topic.<propertyName>.
+  AutomaticTaskInput.description: "Instructions to the orchestrator for filling the value; be precise and give formats, allowed values and examples. With shouldPromptUser: false and a precise description, the input works as a free classifier or extractor."
+  AutomaticTaskInput.shouldPromptUser: true (default) lets the orchestrator ask the user when it can't infer the value. false fills it silently from context and never asks.
+  AutomaticTaskInput.entity: The type of value to extract, e.g. StringPrebuiltEntity, NumberPrebuiltEntity or EmailPrebuiltEntity.
+  AutomaticTaskInput.defaultValue: Value used when none is found.
+  AutomaticTaskInput.inputSettings: Customises the question asked to fill the input (prompt, repeatCount, validation, invalidPrompt, ...), like a Question node. (inferred)
+  ManualTaskInput:
+    description: "A fixed design-time value for an input: a site URL, a list name, a page size. For connector tools only strings hard-code reliably, so write numbers as \"50\" and check in the UI after pushing; MCP tools also accept `=` expressions such as =System.User.Email."
+    docs: docs/08-tools-and-connectors.md#inputs-automatic-vs-manual
+  ManualTaskInput.value: The fixed value. For connector tools write it as a string (e.g. "25").
+  TaskOutput:
+    description: "One output a tool exposes to the orchestrator, in a TaskDialog's outputs: list. Only valid in tool files; topics set outputs with SetVariable on Topic.<name>."
+    docs: docs/08-tools-and-connectors.md#outputs
+  TaskOutput.propertyName: Must exist in the operation's output schema.
+
+  # --- Messages, quick replies and cards
+  MessageOptionalKind:
+    description: "A chat message: a plain string or `{...}` template, or an object with text, speak, quickReplies and attachments. kind: Message is optional and the vendor templates omit it. Don't confuse it with kind: Activity."
+    docs: docs/11-messages-and-adaptive-cards.md#message-object
+  Message:
+    description: "A chat message with an explicit kind: Message; the same shape as the no-kind message object (text, speak, quickReplies, attachments)."
+    docs: docs/11-messages-and-adaptive-cards.md#message-object
+  MessageActivityTemplate.text: "The message text, as a list of strings (templates allowed). Several entries are message variations: one is sent, chosen at random."
+  MessageActivityTemplate.speak: What voice channels say aloud instead of text; text channels ignore it. The vendor error handler uses it to keep diagnostic details out of the spoken version.
+  MessageActivityTemplate.quickReplies: "Suggestion buttons under the message: MessageBack, SendHiddenMessageBack, OpenUrl or MakeCall."
+  MessageActivityTemplate.attachments: "Cards or files shown with the message: HeroCardTemplate, ImageCardTemplate, VideoCardTemplate, AdaptiveCardTemplate or FileTemplate."
+  MessageActivityTemplate.attachmentLayout: "How several attachments are arranged: Carousel (side by side) or List (stacked)."
+  MessageActivityTemplate.randomizeVariantSelection: Whether a text variation is picked at random (default true). (inferred)
+  MessageActivityTemplate.allowBargeIn: "Voice: presumably whether the caller can interrupt the speech (default true). (inferred)"
+  Activity:
+    description: "A non-message activity, such as a typing indicator: activityType defaults to Typing. It is not a message with extra options; for rich messages use the message object (no kind, or kind: Message)."
+    docs: docs/11-messages-and-adaptive-cards.md#other-message-related-kinds
+  EventActivity:
+    description: Sends a named event (name, value) to the client, e.g. for a custom web-chat page to react to. (inferred)
+    docs: docs/11-messages-and-adaptive-cards.md#other-message-related-kinds
+  ResponseTemplate:
+    description: A message plus a mode of Strict or Generated, used for a dialog's response or confirmation. No guidance in the source repo.
+    docs: docs/11-messages-and-adaptive-cards.md#other-message-related-kinds
+  LatencyMessageSettings:
+    description: A "still working" message shown after a delay on long-running nodes.
+    docs: docs/11-messages-and-adaptive-cards.md#other-message-related-kinds
+  MessageBack:
+    description: Quick reply that sends text to the agent as if the user had typed it; displayText can show something different in the transcript.
+    docs: docs/11-messages-and-adaptive-cards.md#quick-replies
+  SendHiddenMessageBack:
+    description: Quick reply that sends text to the agent without showing it in the transcript (inferred from the name).
+    docs: docs/11-messages-and-adaptive-cards.md#quick-replies
+  OpenUrl:
+    description: Quick reply that opens a web page (url).
+    docs: docs/11-messages-and-adaptive-cards.md#quick-replies
+  MakeCall:
+    description: Quick reply that starts a phone call (phoneNumber).
+    docs: docs/11-messages-and-adaptive-cards.md#quick-replies
+  SendMessageQuickReply.text: The text sent to the agent when the button is clicked.
+  SendMessageQuickReply.displayText: Text shown in the transcript instead of text.
+  HeroCardTemplate:
+    description: "A simple hero card attachment: title, subtitle, text, one image and buttons (quick-reply kinds). Widely supported."
+    docs: docs/11-messages-and-adaptive-cards.md#card-attachments
+  ImageCardTemplate:
+    description: A card with one image and a caption (title, image).
+    docs: docs/11-messages-and-adaptive-cards.md#card-attachments
+  VideoCardTemplate:
+    description: A playable video card; media is the video URL.
+    docs: docs/11-messages-and-adaptive-cards.md#card-attachments
+  AdaptiveCardTemplate:
+    description: "A display-only Adaptive Card attached to a message: the topic doesn't wait and no input is collected. Use AdaptiveCardPrompt for forms; the vendor skill uses AdaptiveCardPrompt for every card."
+    docs: docs/11-messages-and-adaptive-cards.md#two-ways-to-use-a-card
+  AdaptiveCardTemplate.cardContent: "Card JSON in a `|` literal block, or a `=` Power Fx record. JSON is static: `{...}` placeholders aren't evaluated. Declare version 1.5 for Teams."
+  FileTemplate:
+    description: Sends a file held in a variable (fileContent expression, name, contentType). No guidance in the source repo.
+    docs: docs/11-messages-and-adaptive-cards.md#card-attachments
+
+  # --- Entities and data types
+  StringPrebuiltEntity:
+    description: "Free text: accepts any answer."
+    docs: docs/06-variables-entities-powerfx.md#prebuilt-entities
+  BooleanPrebuiltEntity:
+    description: A yes/no answer.
+    docs: docs/06-variables-entities-powerfx.md#prebuilt-entities
+  EmailPrebuiltEntity:
+    description: An email address. Spelled EmailPrebuiltEntity; the int-reference skill's EMailPrebuiltEntity doesn't exist.
+    docs: docs/06-variables-entities-powerfx.md#prebuilt-entities
+  ClosedListEntityReference:
+    description: "References a custom closed-list entity by schema name (entityId: <agentSchema>.entity.<Name>). Create the entity in the UI."
+    docs: docs/06-variables-entities-powerfx.md#closed-lists
+  EmbeddedEntity:
+    description: "Defines an entity inline under definition: (a ClosedListEntity or RegexEntity). Schema-valid, though not shown in the vendor repo."
+    docs: docs/06-variables-entities-powerfx.md#closed-lists
+  ClosedListEntity:
+    description: A fixed set of choices, each with an id, displayName and synonyms. smartMatchingEnabled defaults to true.
+    docs: docs/06-variables-entities-powerfx.md#closed-lists
+  RegexEntity:
+    description: Matches a regular expression pattern, such as an order code.
+    docs: docs/06-variables-entities-powerfx.md#regular-expressions
+  RegexEntityReference:
+    description: References a custom regex entity by entityId (<agentSchema>.entity.<Name>).
+    docs: docs/06-variables-entities-powerfx.md#regular-expressions
+  DynamicClosedListEntity:
+    description: Builds the choices at runtime from a table expression in items:. The disambiguation template uses it to offer the matched topics as choices.
+    docs: docs/06-variables-entities-powerfx.md#dynamic-lists
+  OneOfMultiEntityReference:
+    description: "Accepts any one of several entities: entities: is a list of {entity, propertyName}. No vendor guidance."
+    docs: docs/06-variables-entities-powerfx.md#other-entity-references
+  ExternalEntityReference:
+    description: References an entity by entityId from outside the agent. No vendor guidance.
+    docs: docs/06-variables-entities-powerfx.md#other-entity-references
+  CustomEntityComponent:
+    description: The component that holds a custom entity (a ClosedListEntity). The source repo doesn't show its on-disk file, so create custom entities in the UI and reference them from YAML.
+    docs: docs/06-variables-entities-powerfx.md#closed-lists
+  Record:
+    description: "One object with named fields: write kind: Record plus a properties: map of field name to type."
+    docs: docs/06-variables-entities-powerfx.md#data-types
+  Table:
+    description: "A list of records with the given fields: kind: Table plus properties:."
+    docs: docs/06-variables-entities-powerfx.md#data-types
+  UnresolvedDynamicType:
+    description: A placeholder for a shape that depends on design-time choices, e.g. the output of SharePoint GetItems. Nobody can know the column names in advance, so ask for the real ones.
+    docs: docs/08-tools-and-connectors.md#outputs
+  ClosedListOptionSet:
+    description: "The values of a custom closed-list entity: kind: ClosedListOptionSet plus schemaName."
+    docs: docs/06-variables-entities-powerfx.md#data-types
+  EmbeddedOptionSet:
+    description: An option set defined inline in a node (dialogSchemaName, triggerId, actionId). Tool-generated.
+    docs: docs/06-variables-entities-powerfx.md#data-types
+  SystemOptionSet:
+    description: "A built-in enum such as SignInReason, VariablesToClear or SkipQuestionMode: kind: SystemOptionSet plus name."
+    docs: docs/06-variables-entities-powerfx.md#data-types
+
+  # --- Agent definition and settings
+  GptComponentMetadata:
+    description: "The agent definition in agent.mcs.yml: instructions, conversation starters, model choice and capabilities. You can't create it from nothing: create the agent in the UI and clone it. On disk displayName sits at the root, although it isn't a schema property."
+    docs: docs/03-agent.md#agentmcsyml
+  GptComponentMetadata.instructions: The system prompt, written as a `|` block. It shapes grounding, tone, citations, fallback and scope, but routing is decided mainly by each component's modelDescription. Supports `{...}` Power Fx, e.g. {Text(Today(),DateTimeFormat.LongDate)} to give the orchestrator today's date.
+  GptComponentMetadata.responseInstructions: Extra guidance for how responses are phrased. (inferred)
+  GptComponentMetadata.conversationStarters: Suggested opening prompts a channel shows before the user types. Each item needs both title and text.
+  GptComponentMetadata.gptCapabilities: "Built-in capabilities: web browsing, code interpreter, image generation and Microsoft 365 searches. All default to false."
+  GptComponentMetadata.knowledgeSources: "Which knowledge sources the agent searches: SearchAllKnowledgeSources, or SearchSpecificKnowledgeSources with knowledge schema names. No vendor guidance at the agent level."
+  GptComponentMetadata.aISettings: "Model choice and AI switches. Set the model in the no-kind form, `model: {modelNameHint: ..., provider: ...}`, with provider only for non-OpenAI models."
+  ConversationStarter:
+    description: A suggested prompt (title plus text) that a channel shows before the user has typed anything.
+    docs: docs/03-agent.md#properties
+  GptCapabilities.webBrowsing: Web search. It lives here in agent.mcs.yml; the configuration.settings path the edit-agent skill mentions doesn't match the schema.
+  AISettings.contentModeration: "Agent-wide content moderation level: Minimum, Low, Medium, High (default) or Maximum. Stricter levels block more borderline content, which surfaces as RAI errors."
+  AISettings.useModelKnowledge: Let the model answer from its general training knowledge, not only from knowledge sources. (inferred)
+  AISettings.isFileAnalysisEnabled: Allow analysis of files the user uploads. (inferred)
+  AISettings.isSemanticSearchEnabled: Use semantic search over knowledge (default true). (inferred)
+  AISettings.optInUseLatestModels: Opt in to newer model versions. (inferred)
+  CurrentModels.provider: "The model's provider: OpenAI, AzureOpenAI, Anthropic or GoogleVertexAI. Required for non-OpenAI models."
+  BotEntity:
+    description: "The agent's own Dataverse row. settings.mcs.yml has no kind: and isn't schema-validated, but its fields use BotEntity's names, so this is the best reference for its shape."
+    docs: docs/03-agent.md#settingsmcsyml
+  BotEntity.schemaName: "The agent's unique schema name, the prefix of every component's schema name (cr26e_myAgent.topic.Escalate). Never change it: it breaks the agent."
+  BotEntity.authenticationMode: "How end users are identified: None (anonymous), Integrated (Entra ID single sign-on, as in Teams), CustomAzureActiveDirectory or GenericOAuth2 (manual auth). It also decides which test tools can reach the published agent."
+  BotEntity.authenticationTrigger: "When sign-in is requested: AsNeeded (default) or Always."
+  BotEntity.accessControlPolicy: Who may chat with the agent. The source only shows ChatbotReaders.
+  BotEntity.language: "The agent's primary language as a Windows LCID (1033 = English US). Don't change it: it can corrupt the agent."
+  BotEntity.publishedOn: Managed by the platform; don't change it.
+  BotEntity.template: Managed by the platform; don't change it.
+  BotConfiguration.settings: "A free-form map. GenerativeActionsEnabled is the only documented key: true = generative orchestration (an LLM plans each turn), false = classic orchestration (trigger-phrase matching)."
+  BotConfiguration.recognizer: "The agent's intent recognizer: one of the four RecognizerBase kinds. It is set separately from GenerativeActionsEnabled; the vendor fixtures use GenerativeAIRecognizer."
+  BotConfiguration.aISettings: Same shape as aISettings in agent.mcs.yml; the edit-agent skill lists its booleans as editable here.
+  GenerativeAIRecognizer:
+    description: "The only recognizer in the vendor fixtures, which pair it with GenerativeActionsEnabled: false: the recognizer and the orchestration switch are set separately."
+    docs: docs/03-agent.md#recognizers
+  RegexRecognizer:
+    description: A topic-level recognizer with regex intents. No vendor guidance.
+    docs: docs/04-topics-and-triggers.md#adaptivedialog-root-properties
+  BotSettingsComponent:
+    description: "A component whose settings: holds one BotSettingsBase block (content moderation, autonomous, voice, feedback). No examples in the source repo; leave cloned ones as they are."
+    docs: docs/03-agent.md#agent-settings-components-botsettingsbase
+  ContentModerationSettings:
+    description: The reply sent when content moderation blocks a response (moderatedCustomResponse), inferred from the name. The level itself is aISettings.contentModeration or a node's moderationLevel.
+    docs: docs/03-agent.md#agent-settings-components-botsettingsbase
+  AutonomousSettings:
+    description: "Settings for autonomous agents: enterpriseKnowledgeConnectionReference, inferred to be the connection used for enterprise knowledge search when no user is signed in. No vendor guidance."
+    docs: docs/10-flows-and-autonomous-triggers.md#autonomoussettings
+  DefaultFeedbackCollection:
+    description: Turns on thumbs-up/down feedback on responses, with an optional disclaimer. (inferred)
+    docs: docs/03-agent.md#agent-settings-components-botsettingsbase
+  NoFeedbackCollection:
+    description: Turns feedback collection off. (inferred)
+    docs: docs/03-agent.md#agent-settings-components-botsettingsbase
+  IvrBotSettings:
+    description: Voice settings for IVR (phone) agents. (inferred)
+    docs: docs/03-agent.md#agent-settings-components-botsettingsbase
+  DigitalVoiceSettings:
+    description: Voice settings for digital (non-phone) voice channels. (inferred)
+    docs: docs/03-agent.md#agent-settings-components-botsettingsbase
+  RealTimeVoiceBotSettings:
+    description: Real-time voice settings (voiceType, latencySettings). (inferred)
+    docs: docs/03-agent.md#agent-settings-components-botsettingsbase
+  ConnectionParameterSettings:
+    description: Per-connector and per-flow connection parameters (free-form maps). (inferred)
+    docs: docs/03-agent.md#agent-settings-components-botsettingsbase
+
+  # --- Components: variables, knowledge, flows, triggers, connections, tests
+  GlobalVariableComponent:
+    description: "A global variable: one file in variables/, read and written as Global.<name> by every topic for the whole conversation. On disk the variable's fields (name, scope, aIVisibility, ...) sit at the root, although the schema nests them under variable:."
+    docs: docs/06-variables-entities-powerfx.md#global-variables
+  GlobalVariableComponent.schemaName: "`<agentSchema>.globalvariable.<name>`; take the prefix from schemaName in settings.mcs.yml."
+  Variable:
+    description: "A variable's own fields: name, scope, aIVisibility, defaultValue and so on. In variables/*.mcs.yml these are written at the file's root."
+    docs: docs/06-variables-entities-powerfx.md#global-variables
+  Variable.name: The identifier (PascalCase); topics use Global.<name>.
+  Variable.aIVisibility: UseInAIContext lets the orchestrator read and reason about the value (preferences, state that should affect routing or answers). Hidden (default) is for counters and flags. HideFromAIContext, offered by one vendor skill, isn't a schema value.
+  Variable.scope: The vendor skill says it is always Conversation for global variables. Dialog, User and Environment have no vendor guidance.
+  Variable.defaultValue: Initial value. The vendor template uses the placeholder DEFAULT when there's no specific value.
+  Variable.isExternalInitializationAllowed: By its name, the UI's "receive values from other agents" permission that a connected agent's inputs need. No vendor guidance.
+  KnowledgeSourceConfiguration:
+    description: "A knowledge source: one file, knowledge/<descriptive-name>.knowledge.mcs.yml, whose single source: property picks the kind. Keep the `# Name:` and plain description comment lines; with more than 25 sources the orchestrator uses them to choose which to search."
+    docs: docs/07-knowledge.md#file-format
+  KnowledgeSourceConfiguration.source: One of the 15 KnowledgeSource kinds. Search nodes refer to this file by its schema name; copy it from knowledge/, never guess.
+  PublicSiteSearchSource:
+    description: A public website, searched through Bing scoped to site. It doesn't crawl or summarise whole pages, the site must be public, and a URL more than 2 path levels below the domain is silently ignored.
+    docs: docs/07-knowledge.md#publicsitesearchsource
+  PublicSiteSearchSource.site: "The URL that scopes the search: a string, or an `=` expression such as =$\"https://docs.example.com/{Global.Region}/api\". At most 2 path levels below the domain; deeper URLs are ignored."
+  PublicSiteSearchSource.includeSubPages: Whether pages below site are included (default true). (inferred)
+  SharePointSearchSource:
+    description: Documents in a SharePoint folder or site; the usual choice for internal content. Search runs with each user's permissions, only chunks come back (never whole files), and only document libraries are supported, not lists.
+    docs: docs/07-knowledge.md#sharepointsearchsource
+  SharePointSearchSource.site: A direct folder path (.../sites/<Site>/Shared%20Documents/<Folder>) with spaces as %20, not an AllItems.aspx or sharing link. Use the deepest folder that covers the documents. Can be an `=` expression from a global variable holding a clean URL.
+  SharePointSearchSource.indexBehavior: "Whether a pre-built index is used, and whether to fall back to live search: Disabled, EnabledWithFallback (default) or EnabledWithoutFallback. (inferred)"
+  SharePointSearchSource.additionalSearchTerms: Extra terms added to each query. (inferred)
+  GraphConnectorSearchSource:
+    description: Content a Graph (Copilot) connector has indexed into Microsoft 365, such as ServiceNow or Jira. A Microsoft 365 admin must enable the connector, and its connection ID must be stored as an environment variable; neither can be done in YAML.
+    docs: docs/07-knowledge.md#graphconnectorsearchsource
+  GraphConnectorSearchSource.connectionId: "schemaName: of the environment variable holding the connection ID, not a raw GUID."
+  GraphConnectorSearchSource.connectionName: The Graph connection's logical name, as registered in the Microsoft 365 admin center.
+  GraphConnectorSearchSource.contentSourceDisplayName: Label shown on citations.
+  GraphConnectorSearchSource.publisherName: Shown in the Copilot Studio UI.
+  FileGroupKnowledgeSource:
+    description: Files uploaded to the agent. Create it in the UI.
+    docs: docs/07-knowledge.md#other-kinds-briefly
+  DataverseStructuredSearchSource:
+    description: Dataverse tables. Create it in the UI.
+    docs: docs/07-knowledge.md#other-kinds-briefly
+  FederatedStructuredSearchSource:
+    description: "Structured data reached through a connection (inferred: SQL Server and similar). Create it in the UI."
+    docs: docs/07-knowledge.md#other-kinds-briefly
+  AzureAISearchSource:
+    description: An Azure AI Search index (indexName required). Create it in the UI.
+    docs: docs/07-knowledge.md#other-kinds-briefly
+  AzureOpenAIOnYourDataKnowledgeSource:
+    description: An Azure OpenAI "On Your Data" deployment over Azure AI Search (dataSources, apiVersion, deployment). No vendor guidance.
+    docs: docs/07-knowledge.md#other-kinds-briefly
+  BingCustomSearchSource:
+    description: A Bing Custom Search configuration (customConfigurationId). For most "search this website" needs use PublicSiteSearchSource. No vendor guidance.
+    docs: docs/07-knowledge.md#other-kinds-briefly
+  FabricAISkillSource:
+    description: A Microsoft Fabric data agent ("AI skill"); workspaceId and aISkillId are environment-variable references. No vendor guidance.
+    docs: docs/07-knowledge.md#other-kinds-briefly
+  CustomKnowledgeSource:
+    description: Results produced by a Power Fx expression (searchResults, required). No vendor guidance.
+    docs: docs/07-knowledge.md#other-kinds-briefly
+  TeamsMessageSearchSource:
+    description: Messages in Teams. No vendor guidance.
+    docs: docs/07-knowledge.md#other-kinds-briefly
+  MeetingSearchSource:
+    description: Teams meetings. No vendor guidance.
+    docs: docs/07-knowledge.md#other-kinds-briefly
+  EmailSearchSource:
+    description: A mailbox (mailbox, folders). No vendor guidance.
+    docs: docs/07-knowledge.md#other-kinds-briefly
+  CopilotConnectorKnowledgeSourceDemo:
+    description: A Copilot (Graph) connector; the Demo suffix suggests a preview shape. No vendor guidance.
+    docs: docs/07-knowledge.md#other-kinds-briefly
+  CustomSearchInputContent:
+    description: "One custom search result: content, contentLocation (the URL used for the citation) and title. Rows written to System.SearchResults in OnKnowledgeRequested use this shape (Content, ContentLocation, Title)."
+    docs: docs/07-knowledge.md#result-record-shape
+  SearchSpecificKnowledgeSources:
+    description: Restricts a search to the knowledge schema names listed in knowledgeSources:. Each source must already exist and be pushed.
+    docs: docs/07-knowledge.md#referring-to-a-knowledge-source
+  SearchAllKnowledgeSources:
+    description: Searches all of the agent's knowledge sources.
+    docs: docs/07-knowledge.md#searchandsummarizecontent
+  DoNotSearchFiles:
+    description: Turns off the search of uploaded files for this node.
+    docs: docs/07-knowledge.md#searchandsummarizecontent
+  ConnectionReferencesSourceFile:
+    description: "The shape of connectionreferences.mcs.yml: the agent's list of connection references. Read it to find the connector behind a tool or to copy a logical name; don't hand-author new entries."
+    docs: docs/08-tools-and-connectors.md#connection-references
+  ConnectionReference:
+    description: A named pointer to an authenticated connection, stored in the solution. Tools refer to it by logical name, so they never contain credentials. It can only be created by adding the tool in the Copilot Studio UI.
+    docs: docs/08-tools-and-connectors.md#connection-references
+  EnvironmentVariableDefinition:
+    description: A named configuration value stored in a solution, such as a URL that differs between dev and prod.
+    docs: docs/glossary.md#environment-variable
+  CloudFlowDefinition:
+    description: "Metadata for a flow in the agent's solution: its workflowId plus its input/output contract. Treat it as read-only; you don't normally write one by hand."
+    docs: docs/10-flows-and-autonomous-triggers.md#the-cloudflowdefinition-component
+  CloudFlowDefinition.workflowId: The flow's ID; this is what flowId refers to.
+  CloudFlowDefinition.triggerType: Standard (default) or Copilot, which presumably marks a flow with an agent ("run from Copilot") trigger. (inferred)
+  CloudFlowDefinition.connectionType: "Whose connections the flow's steps use: embedded by the author, the invoking user's, both, or none. (inferred)"
+  ExternalTriggerComponent:
+    description: "One autonomous trigger: configuration.externalTriggerSource says which event (connector trigger, schedule or flow) wakes the agent. Create it in the UI, which also creates the connection and Power Platform resources, then edit."
+    docs: docs/10-flows-and-autonomous-triggers.md#externaltriggercomponent
+  ConnectorTriggerDefinition:
+    description: An autonomous trigger fired by a connector trigger, such as a new email. Needs connectionReference, triggerId (from the connector catalogue's Triggers) and callbackMessage.
+    docs: docs/10-flows-and-autonomous-triggers.md#externaltriggercomponent
+  ConnectorTriggerDefinition.callbackMessage: "The message the agent receives when the trigger fires: its prompt for the run (inferred)."
+  ConnectorTriggerDefinition.triggerId: The connector's trigger ID from the catalogues, e.g. OnNewEmailV3.
+  RecurrenceTriggerDefinition:
+    description: An autonomous trigger on a schedule. It has no schedule fields; the schedule is presumably held in the underlying flow.
+    docs: docs/10-flows-and-autonomous-triggers.md#externaltriggercomponent
+  RecurrenceTriggerDefinition.callbackMessage: "The message the agent receives when the schedule fires: its prompt for the run (inferred)."
+  WorkflowExternalTrigger:
+    description: An autonomous trigger started by a flow (flowId).
+    docs: docs/10-flows-and-autonomous-triggers.md#externaltriggercomponent
+  TestCaseComponent:
+    description: "A container for a test or evaluation definition (schemaName, definition). Nothing in the source repo authors these: the skills run evaluations through CSV import and the Evaluation API."
+    docs: docs/12-evaluations-and-testing.md#the-container-testcasecomponent
+  TestCaseDefinition:
+    description: "A scripted test: user activities, each with assertions on the reply (transcriptDefinition.testActivities)."
+    docs: docs/12-evaluations-and-testing.md#the-container-testcasecomponent
+  EvaluationSet:
+    description: "An evaluation set: which graders score each case."
+    docs: docs/12-evaluations-and-testing.md#the-container-testcasecomponent
+  EvaluationData:
+    description: The rows (single-turn questions, expected outputs and keywords) of an evaluation set.
+    docs: docs/12-evaluations-and-testing.md#the-container-testcasecomponent
+  MultiTurnEvaluationCase:
+    description: One multi-turn conversation case, with expected output, keywords and execution steps.
+    docs: docs/12-evaluations-and-testing.md#the-container-testcasecomponent
+  EvaluationRunDefinition:
+    description: A run of an evaluation set (evaluationSetSchemaName) against a target.
+    docs: docs/12-evaluations-and-testing.md#the-container-testcasecomponent
+  PromptGrader:
+    description: "Custom LLM grader: your instructions plus labels, each with a Pass or Fail outcome."
+    docs: docs/12-evaluations-and-testing.md#graders-graderbase
+  AgentEvaluationTarget:
+    description: Evaluate an agent (agentSchemaName).
+    docs: docs/12-evaluations-and-testing.md#targets-and-expected-steps
+  ExpectedTopicTriggeredStep:
+    description: "Expected execution step: this topic (schemaName) should run."
+    docs: docs/12-evaluations-and-testing.md#targets-and-expected-steps
+  ExpectedToolCallStep:
+    description: "Expected execution step: this tool (schemaName) should be called."
+    docs: docs/12-evaluations-and-testing.md#targets-and-expected-steps
+
+  # --- Enum values
+  enum.ConnectionMode.Maker: Uses the agent author's connection, shared by every user (the schema default). For shared resources such as a public list or a service mailbox.
+  enum.ConnectionMode.Invoker: Each end user signs in with their own account and sees only what they're allowed to. Needs user authentication configured on the agent; the safer choice for personal data.
+  enum.VariableAIVisibility.UseInAIContext: The orchestrator can read the value and reason about it. Use it for user preferences and state that should affect routing or answers.
+  enum.VariableAIVisibility.Hidden: Kept out of the model's context (the default). For counters, flags and other bookkeeping.
+  enum.VariableScope.Conversation: The scope global variables always use, per the vendor skill.
+  enum.TopicStartBehavior.UseLatestPublishedContentAndCancelOtherTopics: Cancels whatever else is running and uses the newest published content, so published content wins over stale in-flight dialogs. Used on error handlers, reset topics and reinstall handlers.
+  enum.VariablesToClear.ConversationHistory: The conversation history the AI sees.
+  enum.OnSelectIntentTriggerBehavior.Always: The value the vendor disambiguation template uses.
+  enum.ActivityType.Message: A user message. An OnActivity topic with this type and an IsBlank(Global.X) condition fires once, on the first real message.
+  enum.ActivityType.InstallationUpdate: Sent when the Teams app is installed or reinstalled; an OnActivity topic with this type handles reinstalls.
+  enum.GenerativeResponseOutputType.TextOnly: "The default: capture only the answer text."
+  enum.GenerativeResponseOutputType.FullResponse: Capture the structured response; read .Text.Content, .Text.MarkdownContent and .Text.CitationSources.
+  enum.TaskActionOutputMode.All: Exports all operation outputs; usually what you want.
+  enum.TaskActionOutputMode.Specific: Limits the outputs to those listed in outputs (inferred).
+  enum.BotAuthenticationMode.None: "Anonymous: end users aren't identified. Test tools reach the published agent through Direct Line."
+  enum.BotAuthenticationMode.Integrated: Entra ID single sign-on, as in Teams and Microsoft 365. Test tools need the Copilot Studio SDK.
+  enum.BotAuthenticationMode.CustomAzureActiveDirectory: Manual authentication against an identity provider you configure.
+  enum.BotAuthenticationMode.GenericOAuth2: Manual authentication against an OAuth 2 identity provider you configure.
+  enum.AttachmentLayout.Carousel: Shows several attachments side by side.
+  enum.AttachmentLayout.List: Stacks several attachments vertically.
+  enum.CloudFlowConnectionType.EmbeddedOnly: The flow's steps use connections embedded by the author (inferred).
+  enum.CloudFlowConnectionType.InvokerOnly: The flow's steps use the invoking user's connections (inferred).
+  enum.CloudFlowConnectionType.EmbeddedAndInvoker: The flow's steps use both embedded and invoker connections (inferred).
+  enum.CloudFlowConnectionType.NoConnections: The flow uses no connections (inferred).
+  enum.CloudFlowTriggerType.Copilot: Presumably marks a flow with an agent ("run from Copilot") trigger (inferred).
+
+card: {}
+connector: {}

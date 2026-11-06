@@ -1,0 +1,37 @@
+KIND:       AdaptiveDialog
+SCHEMA:     bot (vendor/skills-for-copilot-studio @ 9c42d3a)
+
+DESCRIPTION:
+    A topic: a scripted conversation flow in topics/<Name>.topic.mcs.yml.
+    beginDialog holds its trigger and the nodes to run. Under generative
+    orchestration it can also declare inputs and outputs, so the orchestrator
+    calls it like a function. Its schema name is `<agentSchema>.topic.<Name>`.
+
+    YAML: `kind: AdaptiveDialog`
+    See: docs/04-topics-and-triggers.md#anatomy-of-a-topic-file
+
+FIELDS:
+  kind	<string> -required-
+  beginDialog	<TriggerBase>  # one of 28 kinds
+  confirmation	<ResponseTemplateNoKind>
+    activity	<ActivityTemplateBase>  # one of 3 kinds
+    mode	<TemplateResponseMode | =expr>
+  conversionMetadata	<ConversionMetadataNoKind>
+    initializedVariableIdToTypeMapping	<map[string]DataType>  # one of 21 kinds
+    variableIdToNameMapping	<map[string]string>
+  endAutomatically	<boolean | =expr>
+  inputType	<RecordNoKind>
+    properties	<map[string]PropertyInfoNoKind>  # one of 22 kinds
+    sensitivityLevel	<SensitivityLevel>
+  inputs	<[]TaskInput>  # one of 2 kinds
+  modelDescription	<string>
+  modelDisplayName	<string>
+  outputType	<RecordNoKind>
+    properties	<map[string]PropertyInfoNoKind>  # one of 22 kinds
+    sensitivityLevel	<SensitivityLevel>
+  recognizer	<Recognizer>  # one of 2 kinds
+  response	<ResponseTemplateNoKind>
+    activity	<ActivityTemplateBase>  # one of 3 kinds
+    mode	<TemplateResponseMode | =expr>
+  startBehavior	<TopicStartBehavior>
+  triggers	<[]TriggerBase>  # one of 28 kinds

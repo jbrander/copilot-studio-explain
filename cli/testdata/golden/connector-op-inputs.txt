@@ -1,0 +1,16 @@
+KIND:       shared_office365users
+SCHEMA:     connector (vendor/skills-for-copilot-studio @ 9c42d3a)
+
+FIELD:      UserProfile_V2.inputs <Record>
+
+DESCRIPTION:
+    The operation's input parameters.
+
+FIELDS:
+  id	<string> -required-
+    User principal name or user ID (e.g., user@contoso.com or a GUID)
+    display name: User (UPN)
+
+  $select	<string>
+    Comma-separated list of user properties to retrieve
+    display name: Select fields

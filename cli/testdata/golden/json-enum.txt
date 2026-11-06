@@ -1,0 +1,27 @@
+{
+  "schema": "bot",
+  "version": "vendor/skills-for-copilot-studio @ 9c42d3a",
+  "resource": "ConversationOutcome",
+  "type": "ConversationOutcome",
+  "shape": "enum",
+  "definition": {
+    "type": "string",
+    "oneOf": [
+      {
+        "title": "BotSchema:$$enum_ConversationOutcome_ResolvedConfirmed_title$$",
+        "description": "BotSchema:$$enum_ConversationOutcome_ResolvedConfirmed_description$$",
+        "const": "ResolvedConfirmed"
+      },
+      {
+        "title": "BotSchema:$$enum_ConversationOutcome_ResolvedImplied_title$$",
+        "description": "BotSchema:$$enum_ConversationOutcome_ResolvedImplied_description$$",
+        "const": "ResolvedImplied"
+      },
+      {
+        "title": "BotSchema:$$enum_ConversationOutcome_Escalated_title$$",
+        "description": "BotSchema:$$enum_ConversationOutcome_Escalated_description$$",
+        "const": "Escalated"
+      }
+    ]
+  }
+}

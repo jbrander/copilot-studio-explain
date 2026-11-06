@@ -1,0 +1,36 @@
+KIND:       Input.ChoiceSet
+SCHEMA:     card (vendor/skills-for-copilot-studio @ 9c42d3a)
+
+FIELD:      choices.data <Data.Query>
+
+DESCRIPTION:
+    Allows dynamic fetching of choices from the bot to be displayed as
+    suggestions in the dropdown when the user types in the input field.
+
+    Data.Query: The data populated in the event payload for fetching dynamic
+    choices, sent to the card-author to help identify the dataset from which
+    choices might be fetched to be displayed in the dropdown. It might contain
+    auxillary data to limit the maximum number of choices that can be sent and
+    to support pagination.
+
+    YAML: `type: Data.Query`
+
+    since Adaptive Cards v1.6
+
+FIELDS:
+  type	<string>
+    Must be `Data.Query`
+
+  count	<number>
+    The maximum number of choices that should be returned by the query. It can
+    be ignored if the card-author wants to send a different number.
+    since Adaptive Cards v1.6
+
+  dataset	<string> -required-
+    The dataset to be queried to get the choices.
+    since Adaptive Cards v1.6
+
+  skip	<number>
+    The number of choices to be skipped in the list of choices returned by the
+    query. It can be ignored if the card-author does not want pagination.
+    since Adaptive Cards v1.6

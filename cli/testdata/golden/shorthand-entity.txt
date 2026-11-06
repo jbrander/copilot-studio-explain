@@ -1,0 +1,26 @@
+KIND:       BooleanPrebuiltEntity
+SCHEMA:     bot (vendor/skills-for-copilot-studio @ 9c42d3a)
+
+DESCRIPTION:
+    A yes/no answer.
+
+    YAML: `kind: BooleanPrebuiltEntity`
+
+    Shorthand: instead of an object you can also write "BooleanPrebuiltEntity".
+    See: docs/06-variables-entities-powerfx.md#prebuilt-entities
+
+FIELDS:
+  kind	<string> -required-
+    Must be "BooleanPrebuiltEntity".
+
+  allowMultipleValues	<boolean>
+    default: false
+
+  dtmfMultipleChoiceOptions	<DtmfMultipleChoiceOptionsNoKind>
+
+  includeMetadata	<boolean>
+    default: false
+
+  sensitivityLevel	<SensitivityLevel>
+    enum: None, Sensitive
+    default: "None"

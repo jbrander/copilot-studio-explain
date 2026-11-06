@@ -1,0 +1,10 @@
+KIND:       SendActivity
+SCHEMA:     bot (vendor/skills-for-copilot-studio @ 9c42d3a)
+
+FIELD:      disabled <boolean>
+
+DESCRIPTION:
+    The node is skipped at runtime. (inferred)
+
+    default: false
+

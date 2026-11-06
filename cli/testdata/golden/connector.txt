@@ -1,0 +1,45 @@
+KIND:       shared_office365users
+SCHEMA:     connector (vendor/skills-for-copilot-studio @ 9c42d3a)
+
+DESCRIPTION:
+    Office 365 Users: Office 365 Users Connection provider lets you access user
+    profiles in your organization using your Office 365 account. You can get
+    your profile, a user's profile, a user's manager, or direct reports.
+
+    connectorId: /providers/Microsoft.PowerApps/apis/shared_office365users
+    connectorType: Public
+    6 operations, 0 triggers
+
+    YAML: `kind: ConnectorDefinition`
+
+FIELDS:
+  MyProfile_V2	<Operation>
+    Get my profile (V2): Retrieves the profile of the current user from
+    Microsoft Graph. Learn more:
+    https://developer.microsoft.com/en-us/graph/docs/api-reference/v1.0/resources/user#properties
+    display name: Get my profile (V2)
+
+  UserProfile_V2	<Operation>
+    Get user profile (V2): Retrieves a specific user's profile from Microsoft
+    Graph by user principal name or user ID.
+    display name: Get user profile (V2)
+
+  UserPhoto	<Operation>
+    Get user photo: Retrieves the photo of the specified user or the current
+    user.
+    display name: Get user photo
+
+  SearchUser_V2	<Operation>
+    Search for users (V2): Searches for users in the organization by name,
+    email, or other attributes using Microsoft Graph.
+    display name: Search for users (V2)
+
+  DirectReports_V2	<Operation>
+    Get direct reports (V2): Retrieves the direct reports of the specified user
+    from Microsoft Graph.
+    display name: Get direct reports (V2)
+
+  Manager_V2	<Operation>
+    Get manager (V2): Retrieves the manager of the specified user from Microsoft
+    Graph.
+    display name: Get manager (V2)

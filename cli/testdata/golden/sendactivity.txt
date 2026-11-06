@@ -1,0 +1,39 @@
+KIND:       SendActivity
+SCHEMA:     bot (vendor/skills-for-copilot-studio @ 9c42d3a)
+
+DESCRIPTION:
+    Sends a message to the user: plain text, a template, message variations,
+    speech, quick replies or card attachments. Under generative orchestration
+    prefer topic outputs for final results, so the orchestrator writes the
+    answer.
+
+    YAML: `kind: SendActivity`
+    See: docs/05-nodes.md#sendactivity
+
+FIELDS:
+  kind	<string> -required-
+    Must be "SendActivity".
+
+  activity	<ActivityTemplateBase> -required-
+    The message: a plain string, a `{...}` template, or an object with text
+    (variations), speak, quickReplies and attachments. Most channels collapse
+    plain newlines, so use `<br />` for breaks; quote values that start with `{`
+    or contain `: `.
+    one of 3 kinds: cs-explain SendActivity.activity
+
+  conversationOutcome	<ConversationOutcome>
+    Marks the conversation's outcome (ResolvedConfirmed, ResolvedImplied or
+    Escalated) for analytics when this node runs. (inferred)
+    enum: ResolvedConfirmed, ResolvedImplied, Escalated
+
+  disabled	<boolean>
+    The node is skipped at runtime. (inferred)
+    default: false
+
+  displayName	<string>
+    The label shown on the node in the authoring canvas.
+
+  id	<string> -required-
+    Unique within the topic. Convention: `<nodeType>_<6-8 random
+    alphanumerics>`, e.g. `sendMessage_k3Jd9a`. Duplicate IDs (from copy-pasted
+    nodes or leftover `_REPLACE` placeholders) fail on push.

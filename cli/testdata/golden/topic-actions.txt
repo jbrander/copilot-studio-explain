@@ -1,0 +1,70 @@
+KIND:       AdaptiveDialog
+SCHEMA:     bot (vendor/skills-for-copilot-studio @ 9c42d3a)
+
+FIELD:      beginDialog.OnRecognizedIntent.actions <[]DialogAction>
+
+DESCRIPTION:
+    The topic body: the nodes to run, in order, when the trigger fires. A child
+    agent's OnToolSelected trigger must not have actions.
+
+    DialogAction: A node: one step in a topic's actions: list. 52 kinds covering
+    messaging, questions, variables, branching and loops, topic navigation, AI
+    and knowledge, integration and conversation control. Never invent a kind;
+    the vendor skills call invented kinds the #1 source of hallucination errors.
+    See: docs/05-nodes.md#all-node-kinds-at-a-glance
+
+ONE OF (set `kind:`):
+  InvokeFlowAction                    Runs a Power Automate cloud flow or agent flow at a fixed point in a topic, passing input…
+  InvokeAIBuilderModelAction          Runs an AI Builder model or prompt by aIModelId, with input/output bindings.
+  WaitForConnectorTrigger             Pauses the topic until a connector trigger fires, then continues with the trigger's outpu…
+  InvokeConnectorAction               Calls a connector operation inline in a topic: no tool file, and the orchestrator isn't i…
+  InvokeMcpToolAction                 Calls one tool on an MCP server at a fixed point in a topic.
+  InvokeSkillAction                   Calls a Bot Framework skill (skillId, actionId).
+  HttpRequestAction                   A raw HTTP call from a topic to a REST endpoint that has no connector.
+  SearchAndSummarizeContent           Generative answers: searches knowledge, has the model write a grounded answer with citati…
+  AnswerQuestionWithAI                Answers from conversation history and general model knowledge only; it doesn't consult kn…
+  SearchAndSummarizeWithCustomModel   Generative answers like SearchAndSummarizeContent, but with an external model under model…
+  InvokeCustomModelAction             Calls a custom or external model (modelConfiguration).
+  SearchKnowledgeSources              Searches knowledge and returns the raw results, with no AI summary.
+  AdaptiveCardPrompt                  Shows an Adaptive Card and waits until the user submits it (the UI's Ask with Adaptive Ca…
+  Question                            Asks the user something and stores the recognised answer in a variable; the entity decide…
+  CSATQuestion                        Asks the built-in CSAT (customer satisfaction, 1-5) rating question; the results feed Cop…
+  OAuthInput                          Shows a sign-in card (title, text, resource).
+  ActionScope                         Groups nodes into a block (actions).
+  Foreach                             Loops over a table: items is the `=` table expression, value the loop variable, index the…
+  DisconnectedNodeContainer           Holds nodes not connected to the flow: leftovers from the authoring canvas.
+  BeginDialog                         Calls another topic (or child agent) and comes back when it ends.
+  ActivateExternalTrigger             Switches on an external (autonomous) trigger from within a conversation and names the top…
+  ReplaceDialog                       Goes to another topic and doesn't come back: the current topic is replaced.
+  RepeatDialog                        Restarts the current topic.
+  DisableTrigger                      Disables the trigger of the topic named in dialog.
+  CancelAllDialogs                    Ends every running topic.
+  CancelDialog                        Cancels the current topic, optionally raising eventName/eventValue.
+  ClearAllVariables                   Resets a whole group of variables.
+  BreakLoop                           Leaves the enclosing Foreach.
+  ContinueLoop                        Skips to the next iteration of the enclosing Foreach.
+  ResetVariable                       Clears one variable.
+  EditTable                           Changes a table (list) variable in place, e.g. appending a row.
+  EditTableV2                         Newer form of EditTable: changeType is an object (AddItemOperation or RemoveItemOperation…
+  EmitEvent                           Raises an event (eventName, eventValue; eventType ActivityIfUnhandled, Activity or Dialog…
+  EndDialog                           Ends the current topic and returns to the caller, if any.
+  GetActivityMembers                  Reads the members of an activity into variable.
+  GetConversationMembers              Reads the members of the conversation (e.g. a Teams group chat) into variable.
+  GotoAction                          Jumps to another node in the same topic.
+  ConditionGroup                      If / else-if / else.
+  EndConversation                     Ends the whole conversation.
+  RecognizeIntent                     Runs intent recognition on userInput.
+  SendActivity                        Sends a message to the user: plain text, a template, message variations, speech, quick re…
+  TransferConversation                Hands the conversation to a human agent or phone number (messageToAgent, context, telepho…
+  TransferConversationV2              Newer transfer node: transferType is TransferToAgent (messageToAgent, context) or Transfe…
+  SetVariable                         Sets a variable to a literal or a Power Fx expression; use it for almost any computation,…
+  SetMultipleVariables                Several assignments in one node: assignments: is a list of {variable, value}.
+  SetTextVariable                     Sets a variable to a text template with `{...}` interpolation; use it to turn non-text va…
+  ParseValue                          Parses a value (typically JSON text) into a typed variable, using valueType (a data type).
+  SignOutUser                         Signs the user out.
+  LogCustomTelemetryEvent             Writes a custom telemetry event, viewable in Application Insights if it is connected.
+  DeleteActivity                      Deletes a previously sent message (activityId).
+  UpdateActivity                      Replaces a previously sent message (activityId, new activity).
+  CreateSearchQuery                   Uses AI and the conversation history to rewrite the user's message into a self-contained …
+
+Use `cs-explain AdaptiveDialog.beginDialog.OnRecognizedIntent.actions.<Kind>` to explain one of them.

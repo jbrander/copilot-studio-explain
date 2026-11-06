@@ -1,0 +1,10 @@
+KIND:       ConversationOutcome
+SCHEMA:     bot (vendor/skills-for-copilot-studio @ 9c42d3a)
+
+DESCRIPTION:
+    No description in schema.
+
+ENUM:
+  ResolvedConfirmed
+  ResolvedImplied
+  Escalated

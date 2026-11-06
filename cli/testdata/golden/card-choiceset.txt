@@ -1,0 +1,106 @@
+KIND:       Input.ChoiceSet
+SCHEMA:     card (vendor/skills-for-copilot-studio @ 9c42d3a)
+
+DESCRIPTION:
+    Allows a user to input a Choice.
+
+    YAML: `type: Input.ChoiceSet`
+
+FIELDS:
+  type	<string>
+    Must be `Input.ChoiceSet`
+
+  choices	<[]Input.Choice>
+    `Choice` options.
+
+  choices.data	<Data.Query>
+    Allows dynamic fetching of choices from the bot to be displayed as
+    suggestions in the dropdown when the user types in the input field.
+    since Adaptive Cards v1.6
+
+  errorMessage	<string>
+    Error message to display when entered input is invalid
+    since Adaptive Cards v1.3
+
+  fallback	<ImplementationsOf.Element | FallbackOption>
+    Describes what to do when an unknown element is encountered or the requires
+    of this or any children can't be met.
+    enum: drop
+    since Adaptive Cards v1.2
+    one of 16 kinds: cs-explain card:Input.ChoiceSet.fallback
+
+  height	<BlockElementHeight>
+    Specifies the height of the element.
+    enum: auto, stretch
+    since Adaptive Cards v1.1
+
+  id	<string> -required-
+    Unique identifier for the value. Used to identify collected input when the
+    Submit action is performed.
+
+  inputStyle	<InputStyle>
+    [SUPPORTED ONLY IN JAVASCRIPT SDK] Style hint for input fields. Allows input
+    fields to appear as read-only but when user clicks/focuses on the field, it
+    allows them to update those fields.
+    enum: revealOnHover, default
+    since Adaptive Cards v1.6
+
+  isMultiSelect	<boolean>
+    Allow multiple choices to be selected.
+    default: false
+
+  isRequired	<boolean>
+    Whether or not this input is required
+    since Adaptive Cards v1.3
+
+  isVisible	<boolean>
+    If `false`, this item will be removed from the visual tree.
+    default: true
+    since Adaptive Cards v1.2
+
+  label	<string>
+    Label for this input
+    since Adaptive Cards v1.3
+
+  labelPosition	<InputLabelPosition>
+    [SUPPORTED ONLY IN JAVASCRIPT SDK] Determines the position of the label. It
+    can take 'inline' and 'above' values. By default, the label is placed
+    'above' when label position is not specified.
+    enum: inline, above
+    since Adaptive Cards v1.6
+
+  labelWidth	<string | number>
+    [SUPPORTED ONLY IN JAVASCRIPT SDK] Determines the width of the label in
+    percent like 40 or a specific pixel width like '40px' when label is placed
+    inline with the input. labelWidth would be ignored when the label is
+    displayed above the input.
+    since Adaptive Cards v1.6
+
+  placeholder	<string>
+    Description of the input desired. Only visible when no selection has been
+    made, the `style` is `compact` and `isMultiSelect` is `false`
+
+  requires	<map[string]string>
+    A series of key/value pairs indicating features that the item requires with
+    corresponding minimum version. When a feature is missing or of insufficient
+    version, fallback is triggered.
+    since Adaptive Cards v1.2
+
+  separator	<boolean>
+    When `true`, draw a separating line at the top of the element.
+
+  spacing	<Spacing>
+    Controls the amount of spacing between this element and the preceding
+    element.
+    enum: default, none, small, medium, large, extraLarge, padding
+
+  style	<ChoiceInputStyle>
+    enum: compact, expanded, filtered
+
+  value	<string>
+    The initial choice (or set of choices) that should be selected. For
+    multi-select, specify a comma-separated string of values.
+
+  wrap	<boolean>
+    If `true`, allow text to wrap. Otherwise, text is clipped.
+    since Adaptive Cards v1.2
