@@ -49,6 +49,13 @@ the vendored schema is updated). Exits non-zero if any key is stale.`,
 				} else {
 					fmt.Fprintf(out, "%-6s %d connectors (descriptions come from the connector files)\n", name, len(src.Names()))
 				}
+				_, missing, err := cat.Roots(name)
+				if err != nil {
+					return err
+				}
+				for _, k := range missing {
+					keys = append(keys, "roots: "+k)
+				}
 				fmt.Fprintf(out, "       overlay entries: %d, stale: %d\n", sec.Len(), len(keys))
 				for _, k := range keys {
 					fmt.Fprintf(out, "         stale: %s\n", k)

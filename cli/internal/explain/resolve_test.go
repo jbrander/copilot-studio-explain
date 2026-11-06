@@ -171,6 +171,13 @@ func TestNoStaleOverlayKeys(t *testing.T) {
 				t.Errorf("%s: stale overlay key %q", name, k)
 			}
 		}
+		_, missing, err := c.Roots(name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, k := range missing {
+			t.Errorf("%s: stale roots kind %q", name, k)
+		}
 	}
 }
 

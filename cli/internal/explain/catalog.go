@@ -120,3 +120,27 @@ func SplitSource(expr string) (source, rest string) {
 	}
 	return Bot, expr
 }
+
+// RootKind is a kind that can be the root of a file, with its schema node.
+type RootKind struct {
+	describe.Root
+	Node *model.Node
+}
+
+// Roots returns the curated file-root kinds of a source (nil if it has none).
+// Kinds the schema no longer defines as `kind:` objects are returned in missing.
+func (c *Catalog) Roots(name string) (roots []RootKind, missing []string, err error) {
+	src, err := c.Source(name)
+	if err != nil {
+		return nil, nil, err
+	}
+	for _, r := range c.overlay.Roots(name) {
+		n, ok := src.Lookup(r.Kind)
+		if !ok || n.Shape != model.Object || n.DiscriminatorValue == "" {
+			missing = append(missing, r.Kind)
+			continue
+		}
+		roots = append(roots, RootKind{Root: r, Node: n})
+	}
+	return roots, missing, nil
+}

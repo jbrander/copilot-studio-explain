@@ -11,6 +11,19 @@
 # the schema's names, the text says so ("inferred"). Kinds the guides don't explain are
 # deliberately left out rather than guessed.
 
+# Kinds that can be the root of a file, from docs/02-project-layout.md#folder-structure. `cs-explain list`
+# shows these by default (`--all` lists every definition). The schema itself only declares
+# AdaptiveDialog and TaskDialog as roots, so this list is curated; stale kinds fail the tests.
+roots:
+  bot:
+    - {kind: GptComponentMetadata, file: agent.mcs.yml}
+    - {kind: ConnectionReferencesSourceFile, file: connectionreferences.mcs.yml}
+    - {kind: AdaptiveDialog, file: topics/*.topic.mcs.yml}
+    - {kind: TaskDialog, file: actions/*.mcs.yml}
+    - {kind: KnowledgeSourceConfiguration, file: knowledge/*.knowledge.mcs.yml}
+    - {kind: GlobalVariableComponent, file: variables/*.mcs.yml}
+    - {kind: AgentDialog, file: agents/<name>/agent.mcs.yml}
+
 bot:
 
   # --- Unions and shared base fields

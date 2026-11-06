@@ -107,7 +107,8 @@ bin/cs-explain AdaptiveDialog.beginDialog.OnRecognizedIntent.actions.Question.en
 bin/cs-explain GptComponentMetadata --recursive --max-depth 2
 bin/cs-explain card:Input.ChoiceSet         # Adaptive Card elements
 bin/cs-explain connector:shared_office365users.UserProfile_V2.inputs
-bin/cs-explain list --kinds-only --filter search   # like `kubectl api-resources`
+bin/cs-explain list                         # the 7 kinds a .mcs.yml file can hold, like `kubectl api-resources`
+bin/cs-explain list --all --kinds-only      # every kind; --filter, --kinds-only and --undocumented imply --all
 bin/cs-explain ConversationOutcome -o json  # the raw schema fragment, for scripts
 source <(bin/cs-explain completion bash)    # tab-complete kinds and field paths
 ```

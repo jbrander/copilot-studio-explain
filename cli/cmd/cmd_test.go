@@ -33,6 +33,7 @@ func TestGolden(t *testing.T) {
 		"connector":                {"connector:shared_office365users"},
 		"connector-op-inputs":      {"connector:shared_office365users.UserProfile_V2.inputs"},
 		"json-enum":                {"ConversationOutcome", "-o", "json"},
+		"list":                     {"list"},
 	}
 	for name, args := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -97,6 +98,15 @@ func TestList(t *testing.T) {
 	}
 	if !strings.Contains(out, "SendActivity ") || !strings.Contains(errOut, "1 definitions") {
 		t.Errorf("unexpected list output:\n%s%s", out, errOut)
+	}
+	out, errOut, code = runCLI(t, "list")
+	if code != 0 || !strings.Contains(errOut, "7 file kinds (of 744 definitions") || strings.Contains(out, "SendActivity") {
+		t.Errorf("default list should show only the file kinds:\n%s%s", out, errOut)
+	}
+	for _, args := range [][]string{{"list", "--all"}, {"list", "-A"}, {"list", "bot", "--all"}} {
+		if _, errOut, _ := runCLI(t, args...); !strings.Contains(errOut, "744 definitions") {
+			t.Errorf("%v: want all 744 definitions, got %q", args, errOut)
+		}
 	}
 	for _, src := range []string{"card", "connector", "connectors"} {
 		if _, errOut, code := runCLI(t, "list", src); code != 0 {

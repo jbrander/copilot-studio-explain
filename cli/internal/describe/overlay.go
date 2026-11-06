@@ -6,6 +6,9 @@
 //	Def.field        a field of Def
 //	Owner.field      a field shared by every definition whose placeholder token names Owner
 //	enum.Enum.Value  one value of an enum
+//
+// A separate top-level `roots:` key lists, per source, the kinds that can be
+// the root of a file; `cs-explain list` shows those by default.
 package describe
 
 import (
@@ -42,9 +45,16 @@ func (e *Entry) UnmarshalYAML(n *yaml.Node) error {
 	return nil
 }
 
+// Root is a kind that can be the root of a file, and the file(s) it lives in.
+type Root struct {
+	Kind string `yaml:"kind"`
+	File string `yaml:"file"`
+}
+
 // Overlay is the parsed descriptions file, one map per schema source.
 type Overlay struct {
 	sections map[string]map[string]Entry
+	roots    map[string][]Root
 }
 
 // Load parses the embedded overlay.
@@ -52,13 +62,16 @@ func Load() (*Overlay, error) { return Parse(embedded) }
 
 // Parse parses an overlay document.
 func Parse(b []byte) (*Overlay, error) {
-	var raw map[string]map[string]Entry
-	if err := yaml.Unmarshal(b, &raw); err != nil {
+	var doc struct {
+		Roots    map[string][]Root           `yaml:"roots"`
+		Sections map[string]map[string]Entry `yaml:",inline"`
+	}
+	if err := yaml.Unmarshal(b, &doc); err != nil {
 		return nil, fmt.Errorf("descriptions overlay: %w", err)
 	}
-	o := &Overlay{sections: map[string]map[string]Entry{}}
-	for k, v := range raw {
-		o.sections[k] = v
+	o := &Overlay{sections: doc.Sections, roots: doc.Roots}
+	if o.sections == nil {
+		o.sections = map[string]map[string]Entry{}
 	}
 	return o, nil
 }
@@ -69,6 +82,15 @@ func (o *Overlay) Section(name string) Section {
 		return Section{}
 	}
 	return Section{entries: o.sections[name]}
+}
+
+// Roots returns the curated file-root kinds of a source, in display order
+// (nil when the source has none, i.e. every definition is listed).
+func (o *Overlay) Roots(source string) []Root {
+	if o == nil {
+		return nil
+	}
+	return o.roots[source]
 }
 
 // Section is the overlay for one schema source.
