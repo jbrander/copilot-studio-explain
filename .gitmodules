@@ -1,0 +1,3 @@
+[submodule "vendor/skills-for-copilot-studio"]
+	path = vendor/skills-for-copilot-studio
+	url = https://github.com/microsoft/skills-for-copilot-studio
